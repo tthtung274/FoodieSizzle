@@ -1,0 +1,276 @@
+LuckyTreeFrame.png
+size:1696,340
+filter:Linear,Linear
+Crystal Wiper/Crystal Wiper_00
+bounds:1659,154,30,32
+offsets:99,48,228,128
+rotate:90
+Crystal Wiper/Crystal Wiper_01
+bounds:1621,90,29,31
+offsets:99,48,228,128
+Crystal Wiper/Crystal Wiper_02
+bounds:1621,123,31,31
+offsets:99,48,228,128
+Crystal Wiper/Crystal Wiper_03
+bounds:938,2,35,34
+offsets:98,48,228,128
+Crystal Wiper/Crystal Wiper_04
+bounds:1111,6,43,36
+offsets:92,48,228,128
+rotate:90
+Crystal Wiper/Crystal Wiper_05
+bounds:791,10,44,42
+offsets:92,43,228,128
+rotate:90
+Crystal Wiper/Crystal Wiper_06
+bounds:1067,5,44,42
+offsets:92,43,228,128
+rotate:90
+Crystal Wiper/Crystal Wiper_07
+bounds:1589,191,55,48
+offsets:85,39,228,128
+rotate:90
+Crystal Wiper/Crystal Wiper_08
+bounds:1447,183,57,54
+offsets:85,37,228,128
+rotate:90
+Crystal Wiper/Crystal Wiper_09
+bounds:1382,21,57,58
+offsets:85,35,228,128
+Crystal Wiper/Crystal Wiper_10
+bounds:188,3,64,64
+offsets:79,30,228,128
+Crystal Wiper/Crystal Wiper_11
+bounds:624,16,68,68
+offsets:79,30,228,128
+Crystal Wiper/Crystal Wiper_12
+bounds:490,9,70,75
+offsets:79,27,228,128
+Crystal Wiper/Crystal Wiper_13
+bounds:254,4,80,79
+offsets:75,23,228,128
+rotate:90
+Crystal Wiper/Crystal Wiper_14
+bounds:1471,2,84,83
+offsets:72,22,228,128
+Crystal Wiper/Crystal Wiper_15
+bounds:1590,3,84,84
+offsets:72,22,228,128
+Crystal Wiper/Crystal Wiper_16
+bounds:1499,89,92,90
+offsets:68,19,228,128
+rotate:90
+Crystal Wiper/Crystal Wiper_17
+bounds:1412,242,96,94
+offsets:66,17,228,128
+rotate:90
+Crystal Wiper/Crystal Wiper_18
+bounds:1335,81,96,96
+offsets:66,15,228,128
+Crystal Wiper/Crystal Wiper_19
+bounds:1186,238,96,100
+offsets:66,14,228,128
+Crystal Wiper/Crystal Wiper_20
+bounds:1237,74,96,100
+offsets:66,14,228,128
+Crystal Wiper/Crystal Wiper_21
+bounds:1038,51,97,101
+offsets:66,13,228,128
+Crystal Wiper/Crystal Wiper_22
+bounds:938,38,98,101
+offsets:65,13,228,128
+Crystal Wiper/Crystal Wiper_23
+bounds:1086,238,98,100
+offsets:65,14,228,128
+Crystal Wiper/Crystal Wiper_24
+bounds:1137,74,98,100
+offsets:65,14,228,128
+Crystal Wiper/Crystal Wiper_25
+bounds:1284,240,93,98
+offsets:67,15,228,128
+flower1
+bounds:1328,179,59,57
+rotate:90
+flower1_no
+bounds:1263,13,59,57
+rotate:90
+flower2
+bounds:1149,12,60,55
+rotate:90
+flower2_no
+bounds:1206,12,60,55
+rotate:90
+flower3
+bounds:1322,14,58,58
+flower3_no
+bounds:1387,181,58,58
+flower4
+bounds:1148,176,56,60
+flower4_no
+bounds:1206,176,56,60
+frame
+bounds:242,86,252,252
+offsets:1,1,254,254
+ground
+bounds:750,115,223,53
+offsets:1,1,225,55
+rotate:90
+hoa3
+bounds:860,115,28,24
+lucky2/flw
+bounds:835,7,101,106
+offsets:1,1,103,108
+lucky2/frame
+bounds:496,86,252,252
+offsets:1,1,254,254
+lucky2/ground
+bounds:805,115,223,53
+offsets:1,1,225,55
+rotate:90
+lucky2/ground2
+bounds:1503,185,84,55
+offsets:1,1,86,57
+lucky2/light_particle
+bounds:1086,176,60,60
+offsets:2,2,64,64
+lucky2/tree_L
+bounds:2,69,118,269
+lucky2/tree_R
+bounds:2,3,64,91
+rotate:90
+lucky2/tree_R2
+bounds:860,141,58,197
+lucky2/tree_up
+bounds:980,154,184,51
+rotate:90
+lucky2/tree_up2
+bounds:335,4,80,27
+rotate:90
+tree_L
+bounds:122,69,118,269
+tree_R
+bounds:95,3,64,91
+rotate:90
+tree_R2
+bounds:920,141,58,197
+tree_R2_fx/tree_R2_fx_03
+bounds:1652,94,26,27
+offsets:211,78,456,256
+tree_R2_fx/tree_R2_fx_04
+bounds:1621,156,28,36
+offsets:211,78,456,256
+rotate:90
+tree_R2_fx/tree_R2_fx_05
+bounds:1639,186,29,36
+offsets:210,79,456,256
+rotate:90
+tree_R2_fx/tree_R2_fx_06
+bounds:1645,249,29,42
+offsets:210,81,456,256
+rotate:90
+tree_R2_fx/tree_R2_fx_07
+bounds:762,4,27,50
+offsets:211,81,456,256
+tree_R2_fx/tree_R2_fx_08
+bounds:1264,176,32,60
+offsets:211,81,456,256
+tree_R2_fx/tree_R2_fx_09
+bounds:729,16,31,68
+offsets:212,81,456,256
+tree_R2_fx/tree_R2_fx_10
+bounds:694,16,33,68
+offsets:212,81,456,256
+tree_R2_fx/tree_R2_fx_11
+bounds:393,7,32,77
+offsets:214,81,456,256
+tree_R2_fx/tree_R2_fx_12
+bounds:1557,2,31,85
+offsets:214,81,456,256
+tree_R2_fx/tree_R2_fx_13
+bounds:1508,246,32,92
+offsets:214,81,456,256
+tree_R2_fx/tree_R2_fx_14
+bounds:1466,87,31,94
+offsets:214,81,456,256
+tree_R2_fx/tree_R2_fx_15
+bounds:1379,241,31,97
+offsets:214,81,456,256
+tree_R2_fx/tree_R2_fx_16
+bounds:1433,83,31,96
+offsets:214,81,456,256
+tree_up
+bounds:1033,154,184,51
+rotate:90
+tree_up2
+bounds:364,4,80,27
+rotate:90
+tree_up_fx/tree_up_fx_04
+bounds:890,119,20,28
+offsets:181,113,455,256
+rotate:90
+tree_up_fx/tree_up_fx_05
+bounds:1007,2,34,29
+offsets:180,112,455,256
+rotate:90
+tree_up_fx/tree_up_fx_06
+bounds:975,2,34,30
+offsets:180,113,455,256
+rotate:90
+tree_up_fx/tree_up_fx_07
+bounds:1602,248,41,30
+offsets:180,113,455,256
+tree_up_fx/tree_up_fx_08
+bounds:1645,217,41,30
+offsets:181,113,455,256
+tree_up_fx/tree_up_fx_09
+bounds:1038,4,45,27
+offsets:184,116,455,256
+rotate:90
+tree_up_fx/tree_up_fx_10
+bounds:1441,24,57,28
+offsets:184,116,455,256
+rotate:90
+tree_up_fx/tree_up_fx_11
+bounds:1298,178,60,28
+offsets:184,116,455,256
+rotate:90
+tree_up_fx/tree_up_fx_12
+bounds:762,56,64,28
+offsets:184,116,455,256
+tree_up_fx/tree_up_fx_13
+bounds:594,14,70,28
+offsets:184,115,455,256
+rotate:90
+tree_up_fx/tree_up_fx_14
+bounds:562,10,74,30
+offsets:184,114,455,256
+rotate:90
+tree_up_fx/tree_up_fx_15
+bounds:459,7,77,29
+offsets:184,113,455,256
+rotate:90
+tree_up_fx/tree_up_fx_16
+bounds:427,7,77,30
+offsets:184,112,455,256
+rotate:90
+tree_up_fx/tree_up_fx_17
+bounds:750,86,83,27
+offsets:184,113,455,256
+tree_up_fx/tree_up_fx_18
+bounds:1591,102,87,28
+offsets:184,112,455,256
+rotate:90
+tree_up_fx/tree_up_fx_19
+bounds:1602,280,89,28
+offsets:184,112,455,256
+tree_up_fx/tree_up_fx_20
+bounds:1542,248,90,28
+offsets:184,112,455,256
+rotate:90
+tree_up_fx/tree_up_fx_21
+bounds:1572,248,90,28
+offsets:184,112,455,256
+rotate:90
+tree_up_fx/tree_up_fx_22
+bounds:1602,310,90,28
+offsets:184,112,455,256

@@ -1,0 +1,143 @@
+NY_Frame2.png
+size:1524,280
+filter:Linear,Linear
+scale:0.8
+Ballon 1
+bounds:1164,122,59,123
+rotate:90
+Ballon 2
+bounds:1461,186,50,92
+offsets:0,1,50,94
+Disco Ball
+bounds:478,179,99,99
+offsets:1,1,101,101
+Frame
+bounds:2,24,241,254
+Ribbon 1
+bounds:760,3,85,81
+offsets:0,0,85,83
+Ribbon 2
+bounds:1475,136,48,47
+offsets:0,1,48,48
+rotate:90
+Ribbon 3
+bounds:1256,95,25,26
+offsets:0,0,26,26
+rotate:90
+Ribbon 4
+bounds:1164,71,90,49
+offsets:0,0,90,50
+Rope 1
+bounds:245,2,28,72
+rotate:90
+Rope 2
+bounds:319,8,22,46
+rotate:90
+Shadow Frame
+bounds:245,32,231,246
+Spark
+bounds:1289,95,96,86
+offsets:1,1,98,88
+Star 1
+bounds:560,2,76,78
+offsets:1,1,78,79
+Star 2
+bounds:1417,40,54,53
+offsets:1,1,55,54
+Star 3
+bounds:1417,2,36,37
+offsets:1,1,38,39
+rotate:90
+Star 4
+bounds:1473,48,40,40
+offsets:0,0,41,41
+Star 5
+bounds:638,47,34,33
+offsets:0,1,35,35
+discofx/discofx_00
+bounds:478,82,96,95
+offsets:55,55,205,205
+discofx/discofx_01
+bounds:579,183,96,95
+offsets:55,55,205,205
+discofx/discofx_02
+bounds:677,183,96,95
+offsets:55,55,205,205
+discofx/discofx_03
+bounds:775,183,96,95
+offsets:55,55,205,205
+discofx/discofx_04
+bounds:873,183,96,95
+offsets:55,55,205,205
+discofx/discofx_05
+bounds:971,183,96,95
+offsets:55,55,205,205
+discofx/discofx_06
+bounds:1069,183,96,95
+offsets:55,55,205,205
+discofx/discofx_07
+bounds:1167,183,96,95
+offsets:55,55,205,205
+discofx/discofx_08
+bounds:1265,183,96,95
+offsets:55,55,205,205
+discofx/discofx_09
+bounds:1363,183,96,95
+offsets:55,55,205,205
+discofx/discofx_10
+bounds:576,82,96,95
+offsets:55,55,205,205
+discofx/discofx_11
+bounds:674,86,96,95
+offsets:55,55,205,205
+discofx/discofx_12
+bounds:772,86,96,95
+offsets:55,55,205,205
+discofx/discofx_13
+bounds:870,86,96,95
+offsets:55,55,205,205
+discofx/discofx_14
+bounds:968,86,96,95
+offsets:55,55,205,205
+discofx/discofx_15
+bounds:1066,86,96,95
+offsets:55,55,205,205
+star/star_00
+bounds:1475,90,44,44
+offsets:142,146,320,320
+star/star_01
+bounds:1361,38,54,55
+offsets:140,139,320,320
+star/star_02
+bounds:1212,8,61,60
+offsets:139,134,320,320
+rotate:90
+star/star_03
+bounds:1144,5,64,66
+offsets:137,129,320,320
+rotate:90
+star/star_04
+bounds:1076,11,66,73
+offsets:136,123,320,320
+star/star_05
+bounds:1005,8,69,76
+offsets:133,120,320,320
+star/star_06
+bounds:930,5,73,79
+offsets:129,118,320,320
+star/star_07
+bounds:478,2,78,80
+offsets:124,118,320,320
+rotate:90
+star/star_08
+bounds:847,3,81,81
+offsets:122,117,320,320
+star/star_09
+bounds:674,2,84,82
+offsets:119,117,320,320
+star/star_10
+bounds:1274,9,85,84
+offsets:118,117,320,320
+star/star_11
+bounds:1387,95,86,86
+offsets:118,117,320,320

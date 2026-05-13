@@ -1,0 +1,30 @@
+Xe.png
+size:824,472
+filter:Linear,Linear
+pma:true
+Ellipse 13
+bounds:2,3,600,41
+Head
+bounds:661,158,128,125
+offsets:1,1,130,127
+Mu
+bounds:661,285,185,153
+rotate:90
+TayTrai
+bounds:736,11,83,62
+offsets:0,0,83,66
+Thit Vien
+bounds:736,75,81,81
+banh xe
+bounds:673,5,40,36
+offsets:1,1,42,38
+rotate:90
+than
+bounds:661,47,109,73
+offsets:1,1,111,75
+rotate:90
+toc
+bounds:604,2,67,42
+xe
+bounds:2,46,657,424
+offsets:3,0,663,427
