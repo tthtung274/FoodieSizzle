@@ -1,0 +1,168 @@
+{
+  "level": 1,
+  "time": 300,
+  "booster": [],
+  "obstacle": [],
+  "foodTypes": ["M", "S", "C"],
+  "perfect": 10,
+  "totalFoods": 30,
+
+  "layout": [
+    ["K1", "K2", "K3"],
+    ["K4", "K5", "K6"],
+    ["K7", "K8", "K9"],
+    ["K10", "K11", "K12"]
+  ],
+
+  "trays": {
+    "K1": {
+      "visible": {
+        "1": "M",
+        "2": null,
+        "3": "M"
+      },
+      "hidden": [
+        {
+          "1": "S",
+          "2": "S",
+          "3": null
+        }
+      ]
+    },
+
+    "K2": {
+      "visible": {
+        "1": null,
+        "2": "S",
+        "3": "S"
+      },
+      "hidden": [
+        {
+          "1": "C",
+          "2": "S",
+          "3": null
+        }
+      ]
+    },
+
+    "K3": {
+      "visible": {
+        "1": "C",
+        "2": "C",
+        "3": null
+      },
+      "hidden": []
+    },
+
+    "K4": {
+      "visible": {
+        "1": "M",
+        "2": "C",
+        "3": null
+      },
+      "hidden": [
+        {
+          "1": "M",
+          "2": null,
+          "3": null
+        }
+      ]
+    },
+
+    "K5": {
+      "visible": {
+        "1": null,
+        "2": "S",
+        "3": "M"
+      },
+      "hidden": []
+    },
+
+    "K6": {
+      "visible": {
+        "1": "C",
+        "2": null,
+        "3": "S"
+      },
+      "hidden": [
+        {
+          "1": "C",
+          "2": null,
+          "3": null
+        }
+      ]
+    },
+
+    "K7": {
+      "visible": {
+        "1": "M",
+        "2": "S",
+        "3": null
+      },
+      "hidden": []
+    },
+
+    "K8": {
+      "visible": {
+        "1": null,
+        "2": "S",
+        "3": "C"
+      },
+      "hidden": [
+        {
+          "1": "M",
+          "2": null,
+          "3": null
+        }
+      ]
+    },
+
+    "K9": {
+      "visible": {
+        "1": "C",
+        "2": null,
+        "3": "M"
+      },
+      "hidden": []
+    },
+
+    "K10": {
+      "visible": {
+        "1": null,
+        "2": null,
+        "3": "M"
+      },
+      "hidden": [
+        {
+          "1": null,
+          "2": "S",
+          "3": null
+        }
+      ]
+    },
+
+    "K11": {
+      "visible": {
+        "1": null,
+        "2": "S",
+        "3": null
+      },
+      "hidden": []
+    },
+
+    "K12": {
+      "visible": {
+        "1": "C",
+        "2": null,
+        "3": null
+      },
+      "hidden": [
+        {
+          "1": null,
+          "2": null,
+          "3": "S"
+        }
+      ]
+    }
+  }
+}
