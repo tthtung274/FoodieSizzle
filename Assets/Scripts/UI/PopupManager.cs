@@ -5,6 +5,7 @@ public class PopupManager : MonoBehaviour
     [Header("Popup")]
     public GameObject popupSetting;
     public GameObject popupProfile;
+    public GameObject popupPause;
 
     public void OpenPopupSetting()
     {
@@ -35,6 +36,22 @@ public class PopupManager : MonoBehaviour
         if (popupProfile != null)
         {
             popupProfile.SetActive(false);
+        }
+    }
+
+    public void OpenPopupPause()
+    {
+        if (popupPause != null)
+        {
+            popupPause.SetActive(true);
+        }
+    }
+
+    public void ClosePopupPause()
+    {
+        if (popupPause != null)
+        {
+            popupPause.SetActive(false);
         }
     }
 }

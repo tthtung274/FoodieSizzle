@@ -1,43 +1,50 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 
 [Serializable]
 public class LevelData
 {
     public int level;
     public int time;
-    public int perfect;
-    public int totalFoods;
-
     public List<string> booster;
     public List<string> obstacle;
     public List<string> foodTypes;
+    public int perfect;
+    public int step;
+    public LayoutRow[] layout;          // Mỗi dòng chứa mảng int ID của khay
+    public TrayCollection trays;
+}
 
-    public string[][] layout;
+[Serializable]
+public class LayoutRow
+{
+    public int[] row;   // đã đổi từ string[] sang int[]
+}
 
-    public Dictionary<string, TrayData>
-        trays;
+[Serializable]
+public class TrayCollection
+{
+    public List<TrayItem> items;
+}
+
+[Serializable]
+public class TrayItem
+{
+    public int key;          // ID của khay (số nguyên)
+    public TrayData value;
 }
 
 [Serializable]
 public class TrayData
 {
-    public SlotData visible;
-
-    public List<SlotData>
-        hidden;
+    public VisibleFood visible;
+    public List<VisibleFood> hidden;
 }
 
 [Serializable]
-public class SlotData
+public class VisibleFood
 {
-    [JsonProperty("1")]
-    public string slot1;
-
-    [JsonProperty("2")]
-    public string slot2;
-
-    [JsonProperty("3")]
-    public string slot3;
+    public string _1;
+    public string _2;
+    public string _3;
 }

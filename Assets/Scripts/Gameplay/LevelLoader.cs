@@ -1,460 +1,235 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
-using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
+using UnityEngine;
 
 public class LevelLoader : MonoBehaviour
 {
-    [Header("Tray")]
-    public GameObject trayPrefab;
+    [Header("Level")]
+    public int currentLevel = 1;
 
-    [Header("Food")]
-    public GameObject foodImagePrefab;
+    [Header("Tray Rows")]
+    public List<Transform> trayRows;
 
-    [Header("Board Root")]
-    public Transform boardRoot;
-
-    [Header("Food Sprites")]
-    public Sprite M;
-    public Sprite S;
-    public Sprite C;
-    public Sprite B;
-    public Sprite CK;
-    public Sprite MS;
-    public Sprite EP;
-
-    [Header("UI Text")]
+    [Header("UI")]
     public TMP_Text levelText;
     public TMP_Text timeText;
-    public TMP_Text perfectText;
+    public TMP_Text stepText;
 
-    private readonly Dictionary<string, Sprite> foodMap =
-        new Dictionary<string, Sprite>();
+    [Header("Food Sprites (ID 1..30)")]
+    public Sprite[] foodSprites;
 
-    private readonly Dictionary<string, Transform> slotMap =
-        new Dictionary<string, Transform>();
+    [Header("Plate Container Prefab")]
+    public GameObject plateContainerPrefab;
 
-    private readonly List<GameObject> spawnedTrays =
-        new List<GameObject>();
+    private Dictionary<int, Sprite> foodMap;
 
-    private void Start()
+    void Start()
     {
-        SetupFoodMap();
-        CacheBoardSlots();
-        LoadLevel(1);
-    }
-
-    private void SetupFoodMap()
-    {
-        foodMap.Clear();
-
-        foodMap["M"] = M;
-        foodMap["S"] = S;
-        foodMap["C"] = C;
-        foodMap["B"] = B;
-        foodMap["CK"] = CK;
-        foodMap["MS"] = MS;
-        foodMap["EP"] = EP;
-    }
-
-    private void CacheBoardSlots()
-    {
-        slotMap.Clear();
-
-        foreach (Transform child in boardRoot)
+        if (plateContainerPrefab == null)
         {
-            string key =
-                child.name.Replace(
-                    "_Position",
-                    ""
-                );
-
-            slotMap[key] = child;
-        }
-    }
-
-    public void LoadLevel(int level)
-    {
-        ClearBoard();
-
-        TextAsset json =
-            Resources.Load<TextAsset>(
-                $"Levels/level_{level}"
-            );
-
-        if (json == null)
-        {
-            Debug.LogError(
-                $"Không tìm thấy level_{level}.json"
-            );
-
+            Debug.LogError("Chưa kéo thả PlateContainerPrefab!");
             return;
         }
 
-        LevelData levelData =
-            JsonConvert.DeserializeObject<LevelData>(
-                json.text
-            );
-
-        if (levelData == null)
+        foodMap = new Dictionary<int, Sprite>();
+        for (int i = 0; i < foodSprites.Length; i++)
         {
-            Debug.LogError(
-                "Parse JSON thất bại"
-            );
+            if (foodSprites[i] != null)
+                foodMap[i + 1] = foodSprites[i];
+        }
 
+        LoadLevel(currentLevel);
+    }
+
+    void LoadLevel(int level)
+    {
+        TextAsset jsonFile = Resources.Load<TextAsset>($"Levels/level_{level}");
+        if (jsonFile == null)
+        {
+            Debug.LogError($"Không tìm thấy level_{level}");
             return;
         }
 
-        // Cập nhật UI với dữ liệu từ JSON
-        UpdateUI(levelData);
-
-        HashSet<string> validTrays =
-            new HashSet<string>();
-
-        foreach (string[] row in levelData.layout)
+        LevelData data = JsonUtility.FromJson<LevelData>(jsonFile.text);
+        if (data == null)
         {
-            foreach (string trayKey in row)
+            Debug.LogError("Parse JSON failed");
+            return;
+        }
+
+        SetupTopbar(data);
+        SetupBoard(data);
+    }
+
+    void SetupTopbar(LevelData data)
+    {
+        levelText.text = $"Lv. {data.level}";
+        timeText.text = FormatTime(data.time);
+        stepText.text = $"0/{data.step}";
+    }
+
+    string FormatTime(int totalSeconds)
+    {
+        int minute = totalSeconds / 60;
+        int second = totalSeconds % 60;
+        return $"{minute:00}:{second:00}";
+    }
+
+    void SetupBoard(LevelData data)
+    {
+        for (int row = 0; row < data.layout.Length; row++)
+        {
+            for (int col = 0; col < data.layout[row].row.Length; col++)
             {
-                if (trayKey == "X")
-                {
-                    continue;
-                }
+                int trayId = data.layout[row].row[col];
+                TrayData trayData = GetTrayData(data.trays, trayId);
+                if (trayData == null) continue;
 
-                validTrays.Add(trayKey);
+                Transform tray = trayRows[row].GetChild(col);
+                SetupTray(tray, trayData);
+            }
+        }
+    }
+
+    TrayData GetTrayData(TrayCollection trays, int key)
+    {
+        foreach (TrayItem item in trays.items)
+        {
+            if (item.key == key)
+                return item.value;
+        }
+        return null;
+    }
+
+    void SetupTray(Transform tray, TrayData trayData)
+    {
+        // Gán visible foods
+        List<Transform> trayFoods = new List<Transform>();
+        foreach (Transform child in tray)
+        {
+            if (child.name == "TrayFood")
+                trayFoods.Add(child);
+        }
+
+        if (trayFoods.Count >= 3)
+        {
+            SetTrayFood(trayFoods[0], trayData.visible._1);
+            SetTrayFood(trayFoods[1], trayData.visible._2);
+            SetTrayFood(trayFoods[2], trayData.visible._3);
+        }
+
+        Transform plateCol = tray.Find("PlateCol");
+        if (plateCol == null)
+        {
+            Debug.LogError($"Không tìm thấy PlateCol trong {tray.name}");
+            return;
+        }
+
+        // Xóa các container cũ
+        for (int i = plateCol.childCount - 1; i >= 0; i--)
+        {
+            Destroy(plateCol.GetChild(i).gameObject);
+        }
+
+        // Tạo mới từng container với index tăng dần
+        int containerIndex = 0;
+        foreach (VisibleFood hidden in trayData.hidden)
+        {
+            GameObject newContainer = Instantiate(plateContainerPrefab, plateCol);
+            SetupPlate(newContainer.transform, hidden, containerIndex);
+            containerIndex++;
+        }
+
+        Debug.Log($"Tray {tray.name}: tạo {containerIndex} plate container");
+    }
+
+    void SetTrayFood(Transform trayFood, string foodTypeId)
+    {
+        if (trayFood == null || trayFood.childCount == 0) return;
+        SpriteRenderer sr = trayFood.GetChild(0).GetComponent<SpriteRenderer>();
+        SetFoodSprite(sr, foodTypeId);
+    }
+
+    void SetupPlate(Transform plateContainer, VisibleFood hidden, int containerIndex)
+    {
+        // Tính toán sorting order và position Y dựa trên index
+        // index 0: order=10, posY=0
+        // index 1: order=12, posY=0.1
+        // index 2: order=14, posY=0.2
+        // index 3: order=16, posY=0.3
+        // index 4: order=18, posY=0.4
+
+        int diaOrder = 10 + (containerIndex * 2);
+        float posY = containerIndex * 0.1f;
+
+        // Set position cho container
+        Vector3 containerPos = plateContainer.localPosition;
+        containerPos.y = posY;
+        plateContainer.localPosition = containerPos;
+
+        // Set sorting order cho tất cả SpriteRenderer
+        SpriteRenderer[] allRenderers = plateContainer.GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (var sr in allRenderers)
+        {
+            if (sr == null) continue;
+
+            // Nếu là đĩa (Dia/Plate)
+            if (sr.name.Contains("Dia") || sr.name.Contains("Plate"))
+            {
+                sr.sortingOrder = diaOrder;
+            }
+            else // Thức ăn
+            {
+                sr.sortingOrder = diaOrder + 2;
             }
         }
 
-        foreach (
-            KeyValuePair<string, TrayData> trayPair
-            in levelData.trays
-        )
+        // Lấy danh sách PlateFood và sắp xếp theo Y từ dưới lên
+        List<Transform> plateFoods = new List<Transform>();
+        foreach (Transform child in plateContainer.GetComponentsInChildren<Transform>(true))
         {
-            string trayKey =
-                trayPair.Key;
+            if (child != null && child.name == "PlateFood")
+                plateFoods.Add(child);
+        }
+        plateFoods.Sort((a, b) => a.localPosition.y.CompareTo(b.localPosition.y));
 
-            TrayData trayData =
-                trayPair.Value;
-
-            if (!validTrays.Contains(trayKey))
+        // Gán món
+        string[] foods = { hidden._1, hidden._2, hidden._3 };
+        for (int i = 0; i < plateFoods.Count && i < foods.Length; i++)
+        {
+            Transform foodSlot = plateFoods[i];
+            if (foodSlot == null || foodSlot.childCount == 0) continue;
+            SpriteRenderer sr = foodSlot.GetChild(0).GetComponent<SpriteRenderer>();
+            if (sr != null)
             {
-                continue;
-            }
-
-            if (!slotMap.ContainsKey(trayKey))
-            {
-                Debug.LogWarning(
-                    $"Không có position cho {trayKey}"
-                );
-
-                continue;
-            }
-
-            Transform spawnPoint =
-                slotMap[trayKey];
-
-            GameObject tray =
-                Instantiate(
-                    trayPrefab,
-                    spawnPoint
-                );
-
-            tray.transform.localPosition =
-                Vector3.zero;
-
-            tray.transform.localRotation =
-                Quaternion.identity;
-
-            tray.transform.localScale =
-                Vector3.one;
-
-            TrayView trayView =
-                tray.GetComponent<TrayView>();
-
-            if (trayView == null)
-            {
-                Debug.LogError(
-                    "TrayPrefab thiếu TrayView"
-                );
-
-                continue;
-            }
-
-            SetupVisible(
-                trayView,
-                trayData.visible
-            );
-
-            SetupHidden(
-                trayView,
-                trayData.hidden
-            );
-
-            spawnedTrays.Add(tray);
-        }
-
-        Debug.Log(
-            $"Load level {level} thành công"
-        );
-    }
-
-    /// <summary>
-    /// Cập nhật UI Text với dữ liệu từ level JSON
-    /// </summary>
-    private void UpdateUI(LevelData levelData)
-    {
-        // Hiển thị Level: "Lv. 1"
-        if (levelText != null)
-        {
-            levelText.text = $"Lv. {levelData.level}";
-        }
-
-        // Hiển thị thời gian: "05:00" (định dạng phút:giây)
-        if (timeText != null)
-        {
-            int minutes = levelData.time / 60;
-            int seconds = levelData.time % 60;
-            timeText.text = $"{minutes:00}:{seconds:00}";
-        }
-
-        // Hiển thị Perfect: "0/10" (số sao đạt được / tổng perfect)
-        if (perfectText != null)
-        {
-            // currentPerfect là 0 ban đầu, bạn có thể cập nhật sau khi người chơi hoàn thành
-            int currentPerfect = 0;
-            perfectText.text = $"{currentPerfect}/{levelData.perfect}";
-        }
-    }
-
-    /// <summary>
-    /// Gọi hàm này khi người chơi đạt được perfect mới
-    /// </summary>
-    public void UpdatePerfect(int currentPerfect, int maxPerfect)
-    {
-        if (perfectText != null)
-        {
-            perfectText.text = $"{currentPerfect}/{maxPerfect}";
-        }
-    }
-
-    private void SetupVisible(
-        TrayView trayView,
-        SlotData slotData
-    )
-    {
-        if (slotData == null)
-        {
-            return;
-        }
-
-        SpawnFood(
-            slotData.slot1,
-            trayView.GetFoodSlot(1)
-        );
-
-        SpawnFood(
-            slotData.slot2,
-            trayView.GetFoodSlot(2)
-        );
-
-        SpawnFood(
-            slotData.slot3,
-            trayView.GetFoodSlot(3)
-        );
-    }
-
-    private void SetupHidden(
-        TrayView trayView,
-        List<SlotData> hidden
-    )
-    {
-        for (
-            int i = 0;
-            i < trayView.hiddenPlates.Length;
-            i++
-        )
-        {
-            trayView.hiddenPlates[i]
-                .gameObject
-                .SetActive(false);
-
-            ClearChildren(
-                trayView.GetHiddenFoodSlot(i, 1)
-            );
-
-            ClearChildren(
-                trayView.GetHiddenFoodSlot(i, 2)
-            );
-
-            ClearChildren(
-                trayView.GetHiddenFoodSlot(i, 3)
-            );
-        }
-
-        if (
-            hidden == null
-            || hidden.Count == 0
-        )
-        {
-            return;
-        }
-
-        int total =
-            hidden.Count;
-
-        for (
-            int i = 0;
-            i < total;
-            i++
-        )
-        {
-            int plateIndex =
-                total - 1 - i;
-
-            Transform plate =
-                trayView.hiddenPlates[
-                    plateIndex
-                ];
-
-            plate.gameObject.SetActive(
-                true
-            );
-
-            SlotData data =
-                hidden[i];
-
-            SpawnFood(
-                data.slot1,
-                trayView.GetHiddenFoodSlot(
-                    plateIndex,
-                    1
-                )
-            );
-
-            SpawnFood(
-                data.slot2,
-                trayView.GetHiddenFoodSlot(
-                    plateIndex,
-                    2
-                )
-            );
-
-            SpawnFood(
-                data.slot3,
-                trayView.GetHiddenFoodSlot(
-                    plateIndex,
-                    3
-                )
-            );
-        }
-    }
-
-    private void SpawnFood(
-    string foodKey,
-    Transform parent
-)
-    {
-        if (parent == null)
-        {
-            return;
-        }
-
-        Image image =
-            parent.GetComponent<Image>();
-
-        if (image == null)
-        {
-            Debug.LogWarning(
-                $"Không có Image ở {parent.name}"
-            );
-
-            return;
-        }
-
-        if (
-            string.IsNullOrEmpty(
-                foodKey
-            )
-        )
-        {
-            image.sprite =
-                null;
-
-            image.color =
-                new Color(
-                    1f,
-                    1f,
-                    1f,
-                    0f
-                );
-
-            return;
-        }
-
-        if (
-            !foodMap.ContainsKey(
-                foodKey
-            )
-        )
-        {
-            Debug.LogWarning(
-                $"Không có sprite {foodKey}"
-            );
-
-            image.sprite =
-                null;
-
-            return;
-        }
-
-        image.sprite =
-            foodMap[
-                foodKey
-            ];
-
-        image.color =
-            Color.white;
-
-        image.preserveAspect =
-            true;
-    }
-
-    private void ClearChildren(
-        Transform parent
-    )
-    {
-        if (parent == null)
-        {
-            return;
-        }
-
-        for (
-            int i =
-                parent.childCount - 1;
-            i >= 0;
-            i--
-        )
-        {
-            Destroy(
-                parent.GetChild(i)
-                    .gameObject
-            );
-        }
-    }
-
-    private void ClearBoard()
-    {
-        foreach (
-            GameObject tray
-            in spawnedTrays
-        )
-        {
-            if (tray != null)
-            {
-                Destroy(tray);
+                SetFoodSprite(sr, foods[i]);
+                sr.sortingOrder = diaOrder + 2;
             }
         }
 
-        spawnedTrays.Clear();
+        Debug.Log($"Container index {containerIndex}: Dia Order = {diaOrder}, Pos Y = {posY}");
+    }
+
+    void SetFoodSprite(SpriteRenderer sr, string foodTypeId)
+    {
+        if (sr == null) return;
+
+        if (string.IsNullOrEmpty(foodTypeId))
+        {
+            sr.enabled = false;
+            sr.sprite = null;
+            return;
+        }
+
+        if (int.TryParse(foodTypeId, out int id) && foodMap.ContainsKey(id))
+        {
+            sr.enabled = true;
+            sr.sprite = foodMap[id];
+        }
+        else
+        {
+            sr.enabled = false;
+            sr.sprite = null;
+        }
     }
 }

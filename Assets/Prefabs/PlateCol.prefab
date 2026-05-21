@@ -46,7 +46,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1088505361725591535, guid: 2d4976830309368468a4eea61b913f24, type: 3}
       propertyPath: m_SortingOrder
-      value: 20
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1106729156365011320, guid: 2d4976830309368468a4eea61b913f24, type: 3}
       propertyPath: m_LocalScale.y
@@ -120,7 +120,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1088505361725591535, guid: 2d4976830309368468a4eea61b913f24, type: 3}
       propertyPath: m_SortingOrder
-      value: 30
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1106729156365011320, guid: 2d4976830309368468a4eea61b913f24, type: 3}
       propertyPath: m_LocalScale.y
@@ -260,7 +260,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1088505361725591535, guid: 2d4976830309368468a4eea61b913f24, type: 3}
       propertyPath: m_SortingOrder
-      value: 40
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1106729156365011320, guid: 2d4976830309368468a4eea61b913f24, type: 3}
       propertyPath: m_LocalScale.y
@@ -334,7 +334,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1088505361725591535, guid: 2d4976830309368468a4eea61b913f24, type: 3}
       propertyPath: m_SortingOrder
-      value: 10
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1106729156365011320, guid: 2d4976830309368468a4eea61b913f24, type: 3}
       propertyPath: m_LocalScale.y

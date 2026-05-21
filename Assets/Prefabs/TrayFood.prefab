@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5713793754516740832}
   - component: {fileID: 3773714571089888082}
+  - component: {fileID: 566555226864324558}
+  - component: {fileID: 8002294500177982667}
   m_Layer: 0
   m_Name: TrayFood
   m_TagString: Untagged
@@ -27,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.9, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6449146099250703904}
@@ -40,7 +42,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1493372240172683315}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -79,6 +81,32 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &566555226864324558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1493372240172683315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16aba527ac9408743b597cf58b6f725d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DragDropManager
+  snapRadius: 1.2
+--- !u!114 &8002294500177982667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1493372240172683315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21d8fa45ab433a2448ac220145c15d0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrayFoodSlot
+  foodRenderer: {fileID: 95475458785222264}
 --- !u!1 &5260448900038861564
 GameObject:
   m_ObjectHideFlags: 0
@@ -158,7 +186,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 12
+  m_SortingOrder: 14
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 5c6bcb110e8d6e845bb57b66ad22eb2b, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
