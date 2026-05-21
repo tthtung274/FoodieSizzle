@@ -2,8 +2,8 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!47 &1
 QualitySettings:
-  serializedVersion: 5
   m_ObjectHideFlags: 0
+  serializedVersion: 5
   m_CurrentQuality: 0
   m_QualitySettings:
   - serializedVersion: 5
@@ -48,7 +48,7 @@ QualitySettings:
     asyncUploadBufferSize: 16
     asyncUploadPersistentBuffer: 1
     resolutionScalingFixedDPIFactor: 1
-    customRenderPipeline: {fileID: 0}
+    customRenderPipeline: {fileID: 11400000, guid: 67a494bf78fbd204e9d14b813b7db8d5, type: 2}
     terrainQualityOverrides: 0
     terrainPixelError: 1
     terrainDetailDensityScale: 1
@@ -329,6 +329,7 @@ QualitySettings:
     Android: 2
     Nintendo 3DS: 5
     Nintendo Switch: 5
+    Nintendo Switch 2: 5
     PS4: 5
     PSM: 5
     PSP2: 2
