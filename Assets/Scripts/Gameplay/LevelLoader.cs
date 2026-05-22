@@ -21,7 +21,11 @@ public class LevelLoader : MonoBehaviour
     [Header("Plate Container Prefab")]
     public GameObject plateContainerPrefab;
 
+    [Header("Score Manager")]
+    public ScoreManager scoreManager;  // Đã đổi từ TopBarController
+
     private Dictionary<int, Sprite> foodMap;
+    private LevelData currentLevelData;
 
     void Start()
     {
@@ -50,15 +54,15 @@ public class LevelLoader : MonoBehaviour
             return;
         }
 
-        LevelData data = JsonUtility.FromJson<LevelData>(jsonFile.text);
-        if (data == null)
+        currentLevelData = JsonUtility.FromJson<LevelData>(jsonFile.text);
+        if (currentLevelData == null)
         {
             Debug.LogError("Parse JSON failed");
             return;
         }
 
-        SetupTopbar(data);
-        SetupBoard(data);
+        SetupTopbar(currentLevelData);
+        SetupBoard(currentLevelData);
     }
 
     void SetupTopbar(LevelData data)
@@ -66,6 +70,13 @@ public class LevelLoader : MonoBehaviour
         levelText.text = $"Lv. {data.level}";
         timeText.text = FormatTime(data.time);
         stepText.text = $"0/{data.step}";
+
+        // Refresh ScoreManager để đọc dữ liệu mới từ UI
+        if (scoreManager != null)
+        {
+            scoreManager.RefreshFromUI();
+            scoreManager.ResetGame();
+        }
     }
 
     string FormatTime(int totalSeconds)
@@ -85,8 +96,15 @@ public class LevelLoader : MonoBehaviour
                 TrayData trayData = GetTrayData(data.trays, trayId);
                 if (trayData == null) continue;
 
-                Transform tray = trayRows[row].GetChild(col);
-                SetupTray(tray, trayData);
+                if (row < trayRows.Count && col < trayRows[row].childCount)
+                {
+                    Transform tray = trayRows[row].GetChild(col);
+                    SetupTray(tray, trayData);
+                }
+                else
+                {
+                    Debug.LogWarning($"Row {row} or Col {col} out of range!");
+                }
             }
         }
     }
@@ -152,39 +170,28 @@ public class LevelLoader : MonoBehaviour
 
     void SetupPlate(Transform plateContainer, VisibleFood hidden, int containerIndex)
     {
-        // Tính toán sorting order và position Y dựa trên index
-        // index 0: order=10, posY=0
-        // index 1: order=12, posY=0.1
-        // index 2: order=14, posY=0.2
-        // index 3: order=16, posY=0.3
-        // index 4: order=18, posY=0.4
-
         int diaOrder = 10 + (containerIndex * 2);
         float posY = containerIndex * 0.1f;
 
-        // Set position cho container
         Vector3 containerPos = plateContainer.localPosition;
         containerPos.y = posY;
         plateContainer.localPosition = containerPos;
 
-        // Set sorting order cho tất cả SpriteRenderer
         SpriteRenderer[] allRenderers = plateContainer.GetComponentsInChildren<SpriteRenderer>(true);
         foreach (var sr in allRenderers)
         {
             if (sr == null) continue;
 
-            // Nếu là đĩa (Dia/Plate)
             if (sr.name.Contains("Dia") || sr.name.Contains("Plate"))
             {
                 sr.sortingOrder = diaOrder;
             }
-            else // Thức ăn
+            else
             {
                 sr.sortingOrder = diaOrder + 2;
             }
         }
 
-        // Lấy danh sách PlateFood và sắp xếp theo Y từ dưới lên
         List<Transform> plateFoods = new List<Transform>();
         foreach (Transform child in plateContainer.GetComponentsInChildren<Transform>(true))
         {
@@ -193,7 +200,6 @@ public class LevelLoader : MonoBehaviour
         }
         plateFoods.Sort((a, b) => a.localPosition.y.CompareTo(b.localPosition.y));
 
-        // Gán món
         string[] foods = { hidden._1, hidden._2, hidden._3 };
         for (int i = 0; i < plateFoods.Count && i < foods.Length; i++)
         {
@@ -231,5 +237,33 @@ public class LevelLoader : MonoBehaviour
             sr.enabled = false;
             sr.sprite = null;
         }
+    }
+
+    public void ReloadCurrentLevel()
+    {
+        LoadLevel(currentLevel);
+
+        if (scoreManager != null)
+        {
+            scoreManager.RefreshFromUI();
+            scoreManager.ResetGame();
+        }
+    }
+
+    public void LoadNextLevel()
+    {
+        currentLevel++;
+        LoadLevel(currentLevel);
+
+        if (scoreManager != null)
+        {
+            scoreManager.RefreshFromUI();
+            scoreManager.ResetGame();
+        }
+    }
+
+    public LevelData GetCurrentLevelData()
+    {
+        return currentLevelData;
     }
 }

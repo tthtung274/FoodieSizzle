@@ -19,6 +19,15 @@ public class TrayManager : MonoBehaviour
         ClearTray();
 
         PullTopPlateContainer();
+
+        // IMPORTANT: Add this line to update steps when food is eaten
+        if (!allEmpty && allSame)
+        {
+            if (ScoreManager.Instance != null)  // Đã đổi từ TopBarController thành ScoreManager
+            {
+                ScoreManager.Instance.AddStep();  // Đã đổi từ TopBarController thành ScoreManager
+            }
+        }
     }
 
     bool IsAllEmpty()
