@@ -270,4 +270,18 @@ public class DragDropManager : MonoBehaviour
         world.z = 0f;
         return world;
     }
+
+    public void ResetToOriginalPosition()
+    {
+        // Reset về vị trí ban đầu
+        if (currentSlot != null)
+        {
+            startPosition = currentSlot.transform.position;
+            transform.position = startPosition;
+        }
+
+        ResetSortingOrder();
+        ResetScale();
+        ResetDragState();
+    }
 }

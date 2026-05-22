@@ -2,7 +2,7 @@
 using TMPro;
 using System.Collections;
 
-public class ScoreManager : MonoBehaviour  // Đã đổi tên class
+public class ScoreManager : MonoBehaviour
 {
     [Header("UI References")]
     public TMP_Text timeText;
@@ -12,23 +12,21 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
     public GameObject winPanel;
     public GameObject defeatPanel;
 
-    // Internal variables
     private int currentSteps = 0;
     private int totalSteps = 0;
     private int currentTime = 0;
     private int totalTime = 0;
     private bool isGameActive = false;
     private bool isGameFinished = false;
+    private bool isGamePaused = false;
     private Coroutine timerCoroutine;
     private DragDropManager dragDropManager;
 
-    // Events
     public System.Action<int> OnStepUpdated;
     public System.Action OnGameWin;
     public System.Action OnGameDefeat;
 
-    // Singleton
-    public static ScoreManager Instance { get; private set; }  // Đã đổi tên
+    public static ScoreManager Instance { get; private set; }
 
     private void Awake()
     {
@@ -46,20 +44,16 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
 
     private void Start()
     {
-        // Hide panels
         if (winPanel != null)
             winPanel.SetActive(false);
         if (defeatPanel != null)
             defeatPanel.SetActive(false);
 
-        // Đọc dữ liệu từ UI text có sẵn
         LoadDataFromUI();
     }
 
-    // Đọc dữ liệu từ UI Text
     private void LoadDataFromUI()
     {
-        // Đọc steps từ stepText (ví dụ: "0/15")
         if (stepText != null)
         {
             string stepString = stepText.text;
@@ -71,7 +65,6 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
             }
         }
 
-        // Đọc thời gian từ timeText (ví dụ: "05:00")
         if (timeText != null)
         {
             string timeString = timeText.text;
@@ -87,12 +80,11 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
 
         Debug.Log($"Loaded from UI: Steps={currentSteps}/{totalSteps}, Time={currentTime}s");
 
-        // Reset game state nhưng chưa active
         isGameActive = false;
         isGameFinished = false;
+        isGamePaused = false;
     }
 
-    // Cập nhật lại dữ liệu từ UI (gọi khi load level mới)
     public void RefreshFromUI()
     {
         LoadDataFromUI();
@@ -105,8 +97,7 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
 
     private void Update()
     {
-        // Chỉ bắt đầu game khi kéo thả lần đầu và game chưa active
-        if (!isGameActive && !isGameFinished && dragDropManager != null)
+        if (!isGameActive && !isGameFinished && !isGamePaused && dragDropManager != null)
         {
             if (Input.GetMouseButtonDown(0))
             {
@@ -119,13 +110,12 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
     {
         if (isGameFinished) return;
         if (isGameActive) return;
+        if (isGamePaused) return;
 
-        // Đảm bảo đọc lại dữ liệu mới nhất từ UI
         LoadDataFromUI();
 
         isGameActive = true;
 
-        // Bắt đầu đếm ngược
         if (timerCoroutine != null)
             StopCoroutine(timerCoroutine);
         timerCoroutine = StartCoroutine(CountdownTimer());
@@ -133,13 +123,69 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
         Debug.Log($"Game started! Time: {currentTime}s, Steps: {currentSteps}/{totalSteps}");
     }
 
+    public void PauseGame()
+    {
+        if (!isGameActive || isGameFinished) return;
+
+        isGamePaused = true;
+        isGameActive = false;
+
+        if (timerCoroutine != null)
+            StopCoroutine(timerCoroutine);
+
+        Debug.Log("Game paused");
+    }
+
+    public void ResumeGame()
+    {
+        if (isGameFinished) return;
+        if (!isGamePaused) return;
+
+        isGamePaused = false;
+        isGameActive = true;
+
+        if (timerCoroutine != null)
+            StopCoroutine(timerCoroutine);
+        timerCoroutine = StartCoroutine(CountdownTimer());
+
+        Debug.Log("Game resumed");
+    }
+
+    public void ReplayGame()
+    {
+        Debug.Log("ReplayGame called - Resetting all values");
+
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+            timerCoroutine = null;
+        }
+
+        isGameActive = false;
+        isGameFinished = false;
+        isGamePaused = false;
+
+        currentSteps = 0;
+        currentTime = totalTime;
+
+        UpdateStepDisplay();
+        UpdateTimeDisplay();
+
+        if (winPanel != null)
+            winPanel.SetActive(false);
+        if (defeatPanel != null)
+            defeatPanel.SetActive(false);
+
+        Debug.Log($"Game replay ready: Time={currentTime}s, Steps={currentSteps}/{totalSteps}");
+    }
+
     private IEnumerator CountdownTimer()
     {
-        while (currentTime > 0 && !isGameFinished)
+        while (currentTime > 0 && !isGameFinished && !isGamePaused)
         {
             yield return new WaitForSeconds(1f);
 
-            if (!isGameFinished && isGameActive)
+            if (!isGameFinished && isGameActive && !isGamePaused)
             {
                 currentTime--;
                 UpdateTimeDisplay();
@@ -147,8 +193,7 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
             }
         }
 
-        // Hết giờ
-        if (!isGameFinished && isGameActive)
+        if (!isGameFinished && isGameActive && !isGamePaused && currentTime <= 0)
         {
             Defeat();
         }
@@ -156,7 +201,7 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
 
     public void AddStep()
     {
-        if (!isGameActive || isGameFinished) return;
+        if (!isGameActive || isGameFinished || isGamePaused) return;
 
         currentSteps++;
         UpdateStepDisplay();
@@ -165,7 +210,6 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
 
         OnStepUpdated?.Invoke(currentSteps);
 
-        // Kiểm tra win
         if (currentSteps >= totalSteps)
         {
             Win();
@@ -178,6 +222,7 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
 
         isGameActive = false;
         isGameFinished = true;
+        isGamePaused = false;
 
         if (timerCoroutine != null)
             StopCoroutine(timerCoroutine);
@@ -197,6 +242,7 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
 
         isGameActive = false;
         isGameFinished = true;
+        isGamePaused = false;
 
         if (defeatPanel != null)
         {
@@ -232,9 +278,10 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
 
     public void ResetGame()
     {
-        LoadDataFromUI(); // Đọc lại từ UI
+        LoadDataFromUI();
         isGameActive = false;
         isGameFinished = false;
+        isGamePaused = false;
 
         if (winPanel != null)
             winPanel.SetActive(false);
@@ -249,7 +296,12 @@ public class ScoreManager : MonoBehaviour  // Đã đổi tên class
 
     public bool IsGameActive()
     {
-        return isGameActive && !isGameFinished;
+        return isGameActive && !isGameFinished && !isGamePaused;
+    }
+
+    public bool IsGamePaused()
+    {
+        return isGamePaused;
     }
 
     public int GetCurrentSteps()

@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class LevelLoader : MonoBehaviour
 {
@@ -18,20 +22,40 @@ public class LevelLoader : MonoBehaviour
     [Header("Food Sprites (ID 1..30)")]
     public Sprite[] foodSprites;
 
-    [Header("Plate Container Prefab")]
-    public GameObject plateContainerPrefab;
+    [Header("Plate Container Template")]
+    public GameObject plateContainerTemplate;
 
     [Header("Score Manager")]
-    public ScoreManager scoreManager;  // Đã đổi từ TopBarController
+    public ScoreManager scoreManager;
 
     private Dictionary<int, Sprite> foodMap;
     private LevelData currentLevelData;
+    private bool isReloading = false;
+    private bool isInitialized = false;
+    private GameObject templateInstance; // Giữ 1 bản copy để dùng
+
+    void Awake()
+    {
+        if (plateContainerTemplate == null)
+        {
+            Debug.LogError("Chưa kéo PlateContainer vào! Hãy kéo object từ Hierarchy vào.");
+            return;
+        }
+
+        // Tạo 1 bản copy ẩn để làm template, không bao giờ bị destroy
+        templateInstance = Instantiate(plateContainerTemplate);
+        templateInstance.name = "PlateContainer_TEMPLATE";
+        templateInstance.SetActive(false); // Ẩn đi
+        DontDestroyOnLoad(templateInstance); // Không bao giờ bị destroy khi reload scene
+
+        Debug.Log("Đã tạo template từ object trong Hierarchy, sẽ dùng cái này để instantiate");
+    }
 
     void Start()
     {
-        if (plateContainerPrefab == null)
+        if (templateInstance == null)
         {
-            Debug.LogError("Chưa kéo thả PlateContainerPrefab!");
+            Debug.LogError("Template null, không thể chạy game!");
             return;
         }
 
@@ -71,7 +95,6 @@ public class LevelLoader : MonoBehaviour
         timeText.text = FormatTime(data.time);
         stepText.text = $"0/{data.step}";
 
-        // Refresh ScoreManager để đọc dữ liệu mới từ UI
         if (scoreManager != null)
         {
             scoreManager.RefreshFromUI();
@@ -121,7 +144,12 @@ public class LevelLoader : MonoBehaviour
 
     void SetupTray(Transform tray, TrayData trayData)
     {
-        // Gán visible foods
+        if (templateInstance == null)
+        {
+            Debug.LogError($"Template null ở tray {tray.name}");
+            return;
+        }
+
         List<Transform> trayFoods = new List<Transform>();
         foreach (Transform child in tray)
         {
@@ -143,17 +171,19 @@ public class LevelLoader : MonoBehaviour
             return;
         }
 
-        // Xóa các container cũ
+        // Xóa hết plate container cũ
         for (int i = plateCol.childCount - 1; i >= 0; i--)
         {
             Destroy(plateCol.GetChild(i).gameObject);
         }
 
-        // Tạo mới từng container với index tăng dần
+        // Tạo mới từ template
         int containerIndex = 0;
         foreach (VisibleFood hidden in trayData.hidden)
         {
-            GameObject newContainer = Instantiate(plateContainerPrefab, plateCol);
+            GameObject newContainer = Instantiate(templateInstance, plateCol);
+            newContainer.SetActive(true); // Bật lên vì template đang tắt
+            newContainer.name = "PlateContainer_" + containerIndex;
             SetupPlate(newContainer.transform, hidden, containerIndex);
             containerIndex++;
         }
@@ -212,8 +242,6 @@ public class LevelLoader : MonoBehaviour
                 sr.sortingOrder = diaOrder + 2;
             }
         }
-
-        Debug.Log($"Container index {containerIndex}: Dia Order = {diaOrder}, Pos Y = {posY}");
     }
 
     void SetFoodSprite(SpriteRenderer sr, string foodTypeId)
@@ -241,13 +269,49 @@ public class LevelLoader : MonoBehaviour
 
     public void ReloadCurrentLevel()
     {
+        if (isReloading) return;
+        isReloading = true;
+
+        Debug.Log($"ReloadCurrentLevel - Reloading level {currentLevel}");
+
+        if (templateInstance == null)
+        {
+            Debug.LogError("Template null! Không thể reload.");
+            isReloading = false;
+            return;
+        }
+
+        ClearAllPlateContainers();
         LoadLevel(currentLevel);
 
         if (scoreManager != null)
         {
             scoreManager.RefreshFromUI();
-            scoreManager.ResetGame();
+            scoreManager.ReplayGame();
         }
+
+        isReloading = false;
+        Debug.Log("Level reloaded successfully");
+    }
+
+    private void ClearAllPlateContainers()
+    {
+        foreach (Transform trayRow in trayRows)
+        {
+            for (int i = 0; i < trayRow.childCount; i++)
+            {
+                Transform tray = trayRow.GetChild(i);
+                Transform plateCol = tray.Find("PlateCol");
+                if (plateCol != null)
+                {
+                    for (int j = plateCol.childCount - 1; j >= 0; j--)
+                    {
+                        Destroy(plateCol.GetChild(j).gameObject);
+                    }
+                }
+            }
+        }
+        Debug.Log("Cleared all old plate containers");
     }
 
     public void LoadNextLevel()
