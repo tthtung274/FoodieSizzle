@@ -10,7 +10,7 @@ public class LoadingController : MonoBehaviour
     public TMP_Text percentText;
 
     [Header("Animation")]
-    public float fakeLoadingTime = 1.5f;
+    public float fakeLoadingTime = 1f;
 
     private float maxWidth;
 

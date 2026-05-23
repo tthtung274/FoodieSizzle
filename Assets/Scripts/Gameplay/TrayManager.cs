@@ -23,9 +23,9 @@ public class TrayManager : MonoBehaviour
         // IMPORTANT: Add this line to update steps when food is eaten
         if (!allEmpty && allSame)
         {
-            if (ScoreManager.Instance != null)  // Đã đổi từ TopBarController thành ScoreManager
+            if (ScoreManager.Instance != null)
             {
-                ScoreManager.Instance.AddStep();  // Đã đổi từ TopBarController thành ScoreManager
+                ScoreManager.Instance.AddStep();
             }
         }
     }

@@ -31,8 +31,8 @@ public class LevelLoader : MonoBehaviour
     private Dictionary<int, Sprite> foodMap;
     private LevelData currentLevelData;
     private bool isReloading = false;
-    private bool isInitialized = false;
-    private GameObject templateInstance; // Giữ 1 bản copy để dùng
+    private GameObject templateInstance;
+    private bool hasAutoReloaded = false;
 
     void Awake()
     {
@@ -42,13 +42,10 @@ public class LevelLoader : MonoBehaviour
             return;
         }
 
-        // Tạo 1 bản copy ẩn để làm template, không bao giờ bị destroy
         templateInstance = Instantiate(plateContainerTemplate);
         templateInstance.name = "PlateContainer_TEMPLATE";
-        templateInstance.SetActive(false); // Ẩn đi
-        DontDestroyOnLoad(templateInstance); // Không bao giờ bị destroy khi reload scene
-
-        Debug.Log("Đã tạo template từ object trong Hierarchy, sẽ dùng cái này để instantiate");
+        templateInstance.SetActive(false);
+        DontDestroyOnLoad(templateInstance);
     }
 
     void Start()
@@ -67,6 +64,21 @@ public class LevelLoader : MonoBehaviour
         }
 
         LoadLevel(currentLevel);
+
+        // Gọi reload ngay lập tức, không đợi frame nào
+        if (!hasAutoReloaded && currentLevelData != null)
+        {
+            hasAutoReloaded = true;
+            // Reload trực tiếp, không qua coroutine
+            ClearAllPlateContainers();
+            LoadLevel(currentLevel);
+
+            if (scoreManager != null)
+            {
+                scoreManager.RefreshFromUI();
+                scoreManager.ReplayGame();
+            }
+        }
     }
 
     void LoadLevel(int level)
@@ -95,7 +107,7 @@ public class LevelLoader : MonoBehaviour
         timeText.text = FormatTime(data.time);
         stepText.text = $"0/{data.step}";
 
-        if (scoreManager != null)
+        if (scoreManager != null && !hasAutoReloaded)
         {
             scoreManager.RefreshFromUI();
             scoreManager.ResetGame();
@@ -174,21 +186,21 @@ public class LevelLoader : MonoBehaviour
         // Xóa hết plate container cũ
         for (int i = plateCol.childCount - 1; i >= 0; i--)
         {
-            Destroy(plateCol.GetChild(i).gameObject);
+            DestroyImmediate(plateCol.GetChild(i).gameObject);
         }
 
-        // Tạo mới từ template
+        // Tạo mới từ template với thứ tự ĐÚNG từ dưới lên
         int containerIndex = 0;
-        foreach (VisibleFood hidden in trayData.hidden)
+
+        // DÙNG .Count CHO List
+        for (int i = trayData.hidden.Count - 1; i >= 0; i--)
         {
             GameObject newContainer = Instantiate(templateInstance, plateCol);
-            newContainer.SetActive(true); // Bật lên vì template đang tắt
+            newContainer.SetActive(true);
             newContainer.name = "PlateContainer_" + containerIndex;
-            SetupPlate(newContainer.transform, hidden, containerIndex);
+            SetupPlate(newContainer.transform, trayData.hidden[i], containerIndex);
             containerIndex++;
         }
-
-        Debug.Log($"Tray {tray.name}: tạo {containerIndex} plate container");
     }
 
     void SetTrayFood(Transform trayFood, string foodTypeId)
@@ -272,8 +284,6 @@ public class LevelLoader : MonoBehaviour
         if (isReloading) return;
         isReloading = true;
 
-        Debug.Log($"ReloadCurrentLevel - Reloading level {currentLevel}");
-
         if (templateInstance == null)
         {
             Debug.LogError("Template null! Không thể reload.");
@@ -291,7 +301,6 @@ public class LevelLoader : MonoBehaviour
         }
 
         isReloading = false;
-        Debug.Log("Level reloaded successfully");
     }
 
     private void ClearAllPlateContainers()
@@ -306,18 +315,26 @@ public class LevelLoader : MonoBehaviour
                 {
                     for (int j = plateCol.childCount - 1; j >= 0; j--)
                     {
-                        Destroy(plateCol.GetChild(j).gameObject);
+                        DestroyImmediate(plateCol.GetChild(j).gameObject);
                     }
                 }
             }
         }
-        Debug.Log("Cleared all old plate containers");
     }
 
     public void LoadNextLevel()
     {
         currentLevel++;
+        hasAutoReloaded = false;
         LoadLevel(currentLevel);
+
+        // Reload ngay cho level mới
+        if (!hasAutoReloaded && currentLevelData != null)
+        {
+            hasAutoReloaded = true;
+            ClearAllPlateContainers();
+            LoadLevel(currentLevel);
+        }
 
         if (scoreManager != null)
         {
