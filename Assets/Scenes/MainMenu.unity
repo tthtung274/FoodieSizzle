@@ -18761,6 +18761,7 @@ GameObject:
   - component: {fileID: 1023158718}
   - component: {fileID: 1023158721}
   - component: {fileID: 1023158722}
+  - component: {fileID: 1023158723}
   m_Layer: 5
   m_Name: BtnPlay
   m_TagString: Untagged
@@ -18912,6 +18913,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ButtonClickEffect
   pressedScale: 0.9
   animationSpeed: 15
+--- !u!114 &1023158723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1023158716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8dac365d19729a4a97a885f6e929cb2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MainMenuPlayButton
+  playButton: {fileID: 1023158718}
+  buttonText: {fileID: 987250288}
+  levelPrefix: "C\u1EA5p \u0111\u1ED9 "
+  defaultText: Play
 --- !u!1 &1028017947
 GameObject:
   m_ObjectHideFlags: 0

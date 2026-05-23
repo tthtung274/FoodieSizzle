@@ -46,6 +46,12 @@ public class LevelLoader : MonoBehaviour
         templateInstance.name = "PlateContainer_TEMPLATE";
         templateInstance.SetActive(false);
         DontDestroyOnLoad(templateInstance);
+
+        // Load the level from PlayerPrefs if it exists
+        if (PlayerPrefs.HasKey("LevelToLoad"))
+        {
+            currentLevel = PlayerPrefs.GetInt("LevelToLoad", 1);
+        }
     }
 
     void Start()
@@ -107,10 +113,14 @@ public class LevelLoader : MonoBehaviour
         timeText.text = FormatTime(data.time);
         stepText.text = $"0/{data.step}";
 
-        if (scoreManager != null && !hasAutoReloaded)
+        if (scoreManager != null)
         {
-            scoreManager.RefreshFromUI();
-            scoreManager.ResetGame();
+            scoreManager.SetTotalSteps(data.step);
+            if (!hasAutoReloaded)
+            {
+                scoreManager.RefreshFromUI();
+                scoreManager.ResetGame();
+            }
         }
     }
 

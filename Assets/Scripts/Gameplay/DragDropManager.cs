@@ -31,6 +31,9 @@ public class DragDropManager : MonoBehaviour
     private GameObject popupPanel;
     public BoxCollider2D targetCollider;
 
+    // THÊM: Static variable để theo dõi item đang được chọn
+    private static DragDropManager currentSelectedItem;
+
     private void Awake()
     {
         cam = Camera.main;
@@ -109,6 +112,12 @@ public class DragDropManager : MonoBehaviour
         if (popupPanel != null && popupPanel.activeSelf)
             return;
 
+        // THÊM: Nếu có item khác đang được chọn, bỏ chọn nó
+        if (currentSelectedItem != null && currentSelectedItem != this)
+        {
+            currentSelectedItem.ResetSelection();
+        }
+
         // Debug.Log($"=== OnMouseDown called on {gameObject.name} ===");
 
         currentSlot = GetComponent<TrayFoodSlot>();
@@ -131,6 +140,9 @@ public class DragDropManager : MonoBehaviour
         {
             spriteRenderer.sortingOrder = 15;
         }
+
+        // THÊM: Đánh dấu item này là đang được chọn
+        currentSelectedItem = this;
     }
 
     private void OnMouseDrag()
@@ -283,5 +295,25 @@ public class DragDropManager : MonoBehaviour
         ResetSortingOrder();
         ResetScale();
         ResetDragState();
+    }
+
+    // THÊM: Phương thức để reset selection (bỏ chọn)
+    private void ResetSelection()
+    {
+        ResetScale();
+        ResetSortingOrder();
+        if (currentSelectedItem == this)
+        {
+            currentSelectedItem = null;
+        }
+    }
+
+    // THÊM: Xử lý khi object bị hủy
+    private void OnDestroy()
+    {
+        if (currentSelectedItem == this)
+        {
+            currentSelectedItem = null;
+        }
     }
 }

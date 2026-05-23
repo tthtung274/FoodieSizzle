@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using System.Collections;
+using UnityEngine.UI; // Add this for Button
 
 public class ScoreManager : MonoBehaviour
 {
@@ -12,8 +13,10 @@ public class ScoreManager : MonoBehaviour
     public GameObject winPanel;
     public GameObject defeatPanel;
 
+    [Header("Win Panel Button")]
+    public Button nextLevelButton; // Drag the button from win panel here
+
     private int currentSteps = 0;
-    private int totalSteps = 0;
     private int currentTime = 0;
     private int totalTime = 0;
     private bool isGameActive = false;
@@ -21,6 +24,9 @@ public class ScoreManager : MonoBehaviour
     private bool isGamePaused = false;
     private Coroutine timerCoroutine;
     private DragDropManager dragDropManager;
+
+    // Add this to track total steps from level
+    private int totalSteps = 0;
 
     public System.Action<int> OnStepUpdated;
     public System.Action OnGameWin;
@@ -49,7 +55,28 @@ public class ScoreManager : MonoBehaviour
         if (defeatPanel != null)
             defeatPanel.SetActive(false);
 
+        // Add listener to the button
+        if (nextLevelButton != null)
+        {
+            nextLevelButton.onClick.AddListener(OnNextLevelButtonClicked);
+        }
+
         LoadDataFromUI();
+    }
+
+    private void OnNextLevelButtonClicked()
+    {
+        // Call LevelLoader to load next level and go to main menu
+        LevelLoader levelLoader = FindObjectOfType<LevelLoader>();
+        if (levelLoader != null)
+        {
+            // Save current level progress
+            PlayerPrefs.SetInt("CurrentLevel", levelLoader.currentLevel + 1);
+            PlayerPrefs.Save();
+
+            // Load main menu with loading animation
+            LoadingManager.LoadScene("MainMenu");
+        }
     }
 
     private void LoadDataFromUI()
@@ -312,5 +339,11 @@ public class ScoreManager : MonoBehaviour
     public int GetTotalSteps()
     {
         return totalSteps;
+    }
+
+    public void SetTotalSteps(int steps)
+    {
+        totalSteps = steps;
+        UpdateStepDisplay();
     }
 }
