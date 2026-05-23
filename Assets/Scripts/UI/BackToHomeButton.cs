@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class BackToHomeButton : MonoBehaviour
 {
@@ -10,6 +9,6 @@ public class BackToHomeButton : MonoBehaviour
 
     public void BackToHome()
     {
-        SceneManager.LoadScene(homeSceneName);
+        LoadingManager.LoadScene(homeSceneName);
     }
 }
