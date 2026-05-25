@@ -1,12 +1,21 @@
 {
   "level": 2,
   "time": 300,
-  "booster": [],
+  "booster": [
+    {
+      "type": "RandomTripleClear"
+    }
+  ],
   "obstacle": [
     {
       "type": "FoodLock",
       "layout": 2,
       "FoodLockImg": "6"
+    },
+    {
+      "type": "FoodLock",
+      "layout": 6,
+      "FoodLockImg": "8"
     }
   ],
   "foodTypes": ["6", "7", "8", "9", "10", "11", "12"],

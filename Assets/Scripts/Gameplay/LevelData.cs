@@ -6,13 +6,19 @@ public class LevelData
 {
     public int level;
     public int time;
-    public List<string> booster;
+    public List<BoosterData> booster;
     public List<ObstacleData> obstacle;
     public List<string> foodTypes;
     public int perfect;
     public int step;
     public LayoutRow[] layout;
     public TrayCollection trays;
+}
+
+[System.Serializable]
+public class BoosterData
+{
+    public string type;
 }
 
 [Serializable]

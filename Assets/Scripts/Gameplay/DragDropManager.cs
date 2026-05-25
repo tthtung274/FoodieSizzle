@@ -319,11 +319,28 @@ public class DragDropManager : MonoBehaviour
     {
         Vector2 mousePos = GetMouseWorldPosition();
 
-        Collider2D hit = Physics2D.OverlapPoint(
-            mousePos,
-            LayerMask.GetMask("FoodLock")
-        );
+        Collider2D[] hits = Physics2D.OverlapPointAll(mousePos);
 
-        return hit != null;
+        bool clickedFoodLock = false;
+        bool clickedThisItem = false;
+
+        foreach (Collider2D hit in hits)
+        {
+            if (hit == null)
+                continue;
+
+            if (hit.gameObject.layer == LayerMask.NameToLayer("FoodLock"))
+            {
+                clickedFoodLock = true;
+            }
+
+            if (hit.transform == transform ||
+                hit.transform.IsChildOf(transform))
+            {
+                clickedThisItem = true;
+            }
+        }
+
+        return clickedFoodLock && clickedThisItem;
     }
 }
