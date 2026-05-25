@@ -28,11 +28,17 @@ public class LevelLoader : MonoBehaviour
     [Header("Score Manager")]
     public ScoreManager scoreManager;
 
+    [Header("FoodLock")]
+    public GameObject foodLockPrefab;
+
     private Dictionary<int, Sprite> foodMap;
     private LevelData currentLevelData;
     private bool isReloading = false;
     private GameObject templateInstance;
     private bool hasAutoReloaded = false;
+
+    // Track spawned FoodLock instances: key = trayId (1-based layout position), value = GameObject
+    private Dictionary<int, GameObject> activeFoodLocks = new Dictionary<int, GameObject>();
 
     void Awake()
     {
@@ -47,7 +53,6 @@ public class LevelLoader : MonoBehaviour
         templateInstance.SetActive(false);
         DontDestroyOnLoad(templateInstance);
 
-        // Load the level from PlayerPrefs if it exists
         if (PlayerPrefs.HasKey("LevelToLoad"))
         {
             currentLevel = PlayerPrefs.GetInt("LevelToLoad", 1);
@@ -71,11 +76,9 @@ public class LevelLoader : MonoBehaviour
 
         LoadLevel(currentLevel);
 
-        // Gọi reload ngay lập tức, không đợi frame nào
         if (!hasAutoReloaded && currentLevelData != null)
         {
             hasAutoReloaded = true;
-            // Reload trực tiếp, không qua coroutine
             ClearAllPlateContainers();
             LoadLevel(currentLevel);
 
@@ -105,6 +108,7 @@ public class LevelLoader : MonoBehaviour
 
         SetupTopbar(currentLevelData);
         SetupBoard(currentLevelData);
+        SetupObstacles(currentLevelData);
     }
 
     void SetupTopbar(LevelData data)
@@ -154,6 +158,122 @@ public class LevelLoader : MonoBehaviour
         }
     }
 
+    // ---------------------------------------------------------------
+    // OBSTACLE SETUP
+    // ---------------------------------------------------------------
+
+    /// <summary>
+    /// "layout": 2 means the 2nd position when reading the layout array
+    /// left-to-right, top-to-bottom (1-indexed).
+    /// Row 0: positions 1,2,3  →  row[0][0]=1, row[0][1]=2, row[0][2]=3
+    /// Row 1: positions 4,5,6  →  etc.
+    /// So position 2 = row 0, column 1 → the tray Transform at trayRows[0].GetChild(1).
+    /// </summary>
+    void SetupObstacles(LevelData data)
+    {
+        // Clear previous FoodLock instances
+        foreach (var go in activeFoodLocks.Values)
+            if (go != null) Destroy(go);
+        activeFoodLocks.Clear();
+
+        if (data.obstacle == null || data.obstacle.Count == 0) return;
+        if (foodLockPrefab == null)
+        {
+            Debug.LogWarning("FoodLock Prefab chưa được gán vào LevelLoader!");
+            return;
+        }
+
+        foreach (ObstacleData obs in data.obstacle)
+        {
+            if (obs.type != "FoodLock") continue;
+
+            // Convert 1-based layout position to (row, col)
+            Transform trayTransform = GetTrayTransformByLayoutPosition(obs.layout, data);
+            if (trayTransform == null)
+            {
+                Debug.LogWarning($"Không tìm thấy tray tại layout position {obs.layout}");
+                continue;
+            }
+
+            // Spawn FoodLock prefab as child of the tray
+            GameObject lockGO = Instantiate(foodLockPrefab, trayTransform);
+            lockGO.name = "FoodLock";
+            lockGO.SetActive(true);
+
+            // Set the FoodLock image to match FoodLockImg (same sprite as food id)
+            Sprite foodSprite = null;
+            if (!string.IsNullOrEmpty(obs.FoodLockImg) &&
+                int.TryParse(obs.FoodLockImg, out int foodId) &&
+                foodMap.ContainsKey(foodId))
+            {
+                foodSprite = foodMap[foodId];
+                SpriteRenderer sr = lockGO.GetComponentInChildren<SpriteRenderer>();
+                if (sr != null)
+                {
+                    sr.sprite = foodSprite;
+                    sr.enabled = true;
+                }
+            }
+
+            // Register with FoodLockController if present
+            FoodLockController controller = lockGO.GetComponent<FoodLockController>();
+            if (controller != null)
+                controller.Init(obs.FoodLockImg, foodSprite);
+
+            // Store using layout position as key so TrayManager can find it
+            activeFoodLocks[obs.layout] = lockGO;
+            Debug.Log($"FoodLock spawned at layout position {obs.layout}, img={obs.FoodLockImg}");
+        }
+    }
+
+    /// <summary>
+    /// Converts a 1-based flat layout position to the corresponding tray Transform.
+    /// Position 1 = trayRows[0].GetChild(0), position 2 = trayRows[0].GetChild(1), etc.
+    /// </summary>
+    Transform GetTrayTransformByLayoutPosition(int layoutPosition, LevelData data)
+    {
+        int counter = 0;
+        for (int row = 0; row < data.layout.Length; row++)
+        {
+            for (int col = 0; col < data.layout[row].row.Length; col++)
+            {
+                counter++;
+                if (counter == layoutPosition)
+                {
+                    if (row < trayRows.Count && col < trayRows[row].childCount)
+                        return trayRows[row].GetChild(col);
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    // ---------------------------------------------------------------
+    // PUBLIC: Called by TrayManager when 3 matching foods are eaten
+    // foodTypeId is the string ID (e.g. "6")
+    // ---------------------------------------------------------------
+    public void OnFoodEaten(string foodTypeId)
+    {
+        if (currentLevelData == null || currentLevelData.obstacle == null) return;
+
+        foreach (ObstacleData obs in currentLevelData.obstacle)
+        {
+            if (obs.type != "FoodLock") continue;
+            if (obs.FoodLockImg != foodTypeId) continue;
+
+            if (activeFoodLocks.TryGetValue(obs.layout, out GameObject lockGO) && lockGO != null)
+            {
+                lockGO.SetActive(false);
+                Debug.Log($"FoodLock tại layout {obs.layout} đã được mở khóa bởi food {foodTypeId}");
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Existing helpers (unchanged)
+    // ---------------------------------------------------------------
+
     TrayData GetTrayData(TrayCollection trays, int key)
     {
         foreach (TrayItem item in trays.items)
@@ -193,16 +313,10 @@ public class LevelLoader : MonoBehaviour
             return;
         }
 
-        // Xóa hết plate container cũ
         for (int i = plateCol.childCount - 1; i >= 0; i--)
-        {
             DestroyImmediate(plateCol.GetChild(i).gameObject);
-        }
 
-        // Tạo mới từ template với thứ tự ĐÚNG từ dưới lên
         int containerIndex = 0;
-
-        // DÙNG .Count CHO List
         for (int i = trayData.hidden.Count - 1; i >= 0; i--)
         {
             GameObject newContainer = Instantiate(templateInstance, plateCol);
@@ -233,15 +347,10 @@ public class LevelLoader : MonoBehaviour
         foreach (var sr in allRenderers)
         {
             if (sr == null) continue;
-
             if (sr.name.Contains("Dia") || sr.name.Contains("Plate"))
-            {
                 sr.sortingOrder = diaOrder;
-            }
             else
-            {
                 sr.sortingOrder = diaOrder + 2;
-            }
         }
 
         List<Transform> plateFoods = new List<Transform>();
@@ -324,9 +433,7 @@ public class LevelLoader : MonoBehaviour
                 if (plateCol != null)
                 {
                     for (int j = plateCol.childCount - 1; j >= 0; j--)
-                    {
                         DestroyImmediate(plateCol.GetChild(j).gameObject);
-                    }
                 }
             }
         }
@@ -338,7 +445,6 @@ public class LevelLoader : MonoBehaviour
         hasAutoReloaded = false;
         LoadLevel(currentLevel);
 
-        // Reload ngay cho level mới
         if (!hasAutoReloaded && currentLevelData != null)
         {
             hasAutoReloaded = true;

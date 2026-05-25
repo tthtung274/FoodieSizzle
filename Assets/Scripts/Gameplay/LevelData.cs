@@ -7,18 +7,26 @@ public class LevelData
     public int level;
     public int time;
     public List<string> booster;
-    public List<string> obstacle;
+    public List<ObstacleData> obstacle;
     public List<string> foodTypes;
     public int perfect;
     public int step;
-    public LayoutRow[] layout;          // Mỗi dòng chứa mảng int ID của khay
+    public LayoutRow[] layout;
     public TrayCollection trays;
+}
+
+[Serializable]
+public class ObstacleData
+{
+    public string type;
+    public int layout;
+    public string FoodLockImg;
 }
 
 [Serializable]
 public class LayoutRow
 {
-    public int[] row;   // đã đổi từ string[] sang int[]
+    public int[] row;
 }
 
 [Serializable]
@@ -30,7 +38,7 @@ public class TrayCollection
 [Serializable]
 public class TrayItem
 {
-    public int key;          // ID của khay (số nguyên)
+    public int key;
     public TrayData value;
 }
 

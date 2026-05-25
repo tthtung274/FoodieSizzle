@@ -108,17 +108,16 @@ public class DragDropManager : MonoBehaviour
 
     private void OnMouseDown()
     {
-        // Kiểm tra popup đang bật không cho tương tác
+        if (IsBlockedByFoodLock())
+            return;
+
         if (popupPanel != null && popupPanel.activeSelf)
             return;
 
-        // THÊM: Nếu có item khác đang được chọn, bỏ chọn nó
         if (currentSelectedItem != null && currentSelectedItem != this)
         {
             currentSelectedItem.ResetSelection();
         }
-
-        // Debug.Log($"=== OnMouseDown called on {gameObject.name} ===");
 
         currentSlot = GetComponent<TrayFoodSlot>();
 
@@ -141,7 +140,6 @@ public class DragDropManager : MonoBehaviour
             spriteRenderer.sortingOrder = 15;
         }
 
-        // THÊM: Đánh dấu item này là đang được chọn
         currentSelectedItem = this;
     }
 
@@ -315,5 +313,17 @@ public class DragDropManager : MonoBehaviour
         {
             currentSelectedItem = null;
         }
+    }
+
+    private bool IsBlockedByFoodLock()
+    {
+        Vector2 mousePos = GetMouseWorldPosition();
+
+        Collider2D hit = Physics2D.OverlapPoint(
+            mousePos,
+            LayerMask.GetMask("FoodLock")
+        );
+
+        return hit != null;
     }
 }
