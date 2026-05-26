@@ -4,6 +4,9 @@
   "booster": [
     {
       "type": "RandomTripleClear"
+    },
+    {
+      "type": "Shuffle"
     }
   ],
   "obstacle": [

@@ -87,7 +87,7 @@ public class BoosterManager : MonoBehaviour
         int currentLevel = GetLevelFromText();
 
         disable1.gameObject.SetActive(currentLevel < 2);
-        disable2.gameObject.SetActive(currentLevel < 6);
+        disable2.gameObject.SetActive(currentLevel < 3);
         disable3.gameObject.SetActive(currentLevel < 8);
         disable4.gameObject.SetActive(currentLevel < 20);
     }
@@ -116,7 +116,6 @@ public class BoosterManager : MonoBehaviour
         hasFoodPurge = currentLevelData.booster.Any(b => b.type == "FoodPurge");
         hasFlameBooster = currentLevelData.booster.Any(b => b.type == "FlameBooster");
 
-        // Update disable images based on map availability
         if (disable1 != null) disable1.gameObject.SetActive(!hasRandomTripleClear);
         if (disable2 != null) disable2.gameObject.SetActive(!hasShuffle);
         if (disable3 != null) disable3.gameObject.SetActive(!hasFoodPurge);
@@ -169,24 +168,30 @@ public class BoosterManager : MonoBehaviour
         return 1;
     }
 
-    // Check if a slot is blocked by FoodLock (and FoodLock is still active)
     private bool IsSlotBlockedByFoodLock(TrayFoodSlot slot)
     {
         if (slot == null) return false;
 
-        // Get the parent tray
         Transform trayTransform = slot.transform.parent;
         if (trayTransform == null) return false;
 
-        // Check if there's an active FoodLock in this tray
         FoodLockController foodLock = trayTransform.GetComponentInChildren<FoodLockController>();
         if (foodLock != null && foodLock.IsLocked())
         {
-            // FoodLock is still active, slot is blocked
             return true;
         }
 
         return false;
+    }
+
+    // ==================== CLASS ĐỂ LƯU THÔNG TIN FOOD SLOT ====================
+    private class FoodItemInfo
+    {
+        public TrayFoodSlot slot;      // Cho visible items
+        public SpriteRenderer spriteRenderer; // Cho hidden items (trong PlateFood)
+        public Transform parent;        // Để biết vị trí
+        public bool isHidden;           // true nếu là hidden, false nếu là visible
+        public TrayManager tray;        // Tray cha (để check tray state sau khi shuffle)
     }
 
     // ==================== BOOSTER 1: RandomTripleClear ====================
@@ -204,7 +209,6 @@ public class BoosterManager : MonoBehaviour
             return;
         }
 
-        // Check if game is active
         if (scoreManager == null)
             scoreManager = FindObjectOfType<ScoreManager>();
 
@@ -214,10 +218,8 @@ public class BoosterManager : MonoBehaviour
             return;
         }
 
-        // Find all TrayFoodSlot in scene
         TrayFoodSlot[] allSlots = FindObjectsOfType<TrayFoodSlot>();
 
-        // Group by food type, EXCLUDING slots that are blocked by FoodLock
         Dictionary<string, List<TrayFoodSlot>> foodGroups = new Dictionary<string, List<TrayFoodSlot>>();
 
         foreach (TrayFoodSlot slot in allSlots)
@@ -225,7 +227,6 @@ public class BoosterManager : MonoBehaviour
             if (slot == null) continue;
             if (slot.IsEmpty()) continue;
 
-            // IMPORTANT: Skip slots that are blocked by FoodLock
             if (IsSlotBlockedByFoodLock(slot))
             {
                 Debug.Log($"Bỏ qua slot tại tray {slot.GetTray()?.name} vì đang bị FoodLock khóa");
@@ -235,7 +236,6 @@ public class BoosterManager : MonoBehaviour
             Sprite sprite = slot.GetSprite();
             if (sprite == null) continue;
 
-            // Use sprite name as key
             string foodKey = sprite.name;
 
             if (!foodGroups.ContainsKey(foodKey))
@@ -244,7 +244,6 @@ public class BoosterManager : MonoBehaviour
             foodGroups[foodKey].Add(slot);
         }
 
-        // Only find food types that have AT LEAST 3 slots
         List<string> validFoodTypes = new List<string>();
         foreach (var kvp in foodGroups)
         {
@@ -254,26 +253,20 @@ public class BoosterManager : MonoBehaviour
 
         if (validFoodTypes.Count == 0)
         {
-            Debug.Log("Không có loại thức ăn nào đủ 3 cái để clear! (Không tính các ô đang bị FoodLock khóa)");
-            return;  // Không trừ booster, không làm gì cả
+            Debug.Log("Không có loại thức ăn nào đủ 3 cái để clear!");
+            return;
         }
 
-        // Random pick one food type
         string selectedFoodType = validFoodTypes[Random.Range(0, validFoodTypes.Count)];
         List<TrayFoodSlot> slotsToClear = foodGroups[selectedFoodType];
-
-        // Take exactly 3 slots (first 3)
         List<TrayFoodSlot> selectedSlots = slotsToClear.Take(3).ToList();
 
-        // Use booster (decrease count) - ONLY HERE AFTER VALIDATION
         booster1--;
         SaveBoosterData();
         RefreshUI();
 
-        // Show effect and clear
         StartCoroutine(HighlightAndClearSlots(selectedSlots));
 
-        // Add step
         if (scoreManager != null)
             scoreManager.AddStep();
 
@@ -282,7 +275,6 @@ public class BoosterManager : MonoBehaviour
 
     private System.Collections.IEnumerator HighlightAndClearSlots(List<TrayFoodSlot> slots)
     {
-        // Store original scale and get DragDropManager components
         List<DragDropManager> dragDropManagers = new List<DragDropManager>();
         List<Vector3> originalScales = new List<Vector3>();
 
@@ -290,43 +282,34 @@ public class BoosterManager : MonoBehaviour
         {
             if (slot == null) continue;
 
-            // Get DragDropManager from the food object (child of slot)
             DragDropManager dragDrop = slot.GetComponentInChildren<DragDropManager>();
             if (dragDrop != null)
             {
                 dragDropManagers.Add(dragDrop);
                 originalScales.Add(dragDrop.transform.localScale);
-
-                // Scale up to 1.5x
                 dragDrop.transform.localScale = originalScales[originalScales.Count - 1] * 1.2f;
             }
         }
 
-        // Wait for 1.5 seconds (active state)
         yield return new WaitForSeconds(1.5f);
 
-        // Clear the slots
         foreach (TrayFoodSlot slot in slots)
         {
             if (slot == null) continue;
 
-            // Get the DragDropManager on the food object and reset it
             DragDropManager dragDrop = slot.GetComponentInChildren<DragDropManager>();
             if (dragDrop != null)
             {
                 dragDrop.ResetToOriginalPosition();
             }
 
-            // Clear the slot
             slot.SetSprite(null);
 
-            // Check trays after clearing
             TrayManager tray = slot.GetTray();
             if (tray != null)
                 tray.CheckTrayState();
         }
 
-        // Restore scales
         for (int i = 0; i < dragDropManagers.Count; i++)
         {
             if (dragDropManagers[i] != null)
@@ -336,7 +319,7 @@ public class BoosterManager : MonoBehaviour
         }
     }
 
-    // ==================== BOOSTER 2: Shuffle (TODO) ====================
+    // ==================== BOOSTER 2: Shuffle (cả visible và hidden) ====================
     public void OnBooster2Click()
     {
         if (!hasShuffle)
@@ -351,8 +334,205 @@ public class BoosterManager : MonoBehaviour
             return;
         }
 
-        // TODO: Implement Shuffle logic later
-        Debug.Log("Shuffle chưa được implement!");
+        if (scoreManager == null)
+            scoreManager = FindObjectOfType<ScoreManager>();
+
+        if (scoreManager != null && !scoreManager.IsGameActive())
+        {
+            Debug.Log("Game chưa bắt đầu hoặc đã kết thúc!");
+            return;
+        }
+
+        bool shuffleSuccess = PerformFullShuffle();
+
+        if (!shuffleSuccess)
+        {
+            Debug.Log("Không thể shuffle: không có đủ food items để hoán đổi!");
+            return;
+        }
+
+        booster2--;
+        SaveBoosterData();
+        RefreshUI();
+
+        Debug.Log("Used Shuffle booster! (đã shuffle cả visible và hidden)");
+    }
+
+    private bool PerformFullShuffle()
+    {
+        List<FoodItemInfo> allFoodItems = new List<FoodItemInfo>();
+        List<Sprite> allSprites = new List<Sprite>();
+
+        // 1. Thu thập tất cả VISIBLE items (TrayFoodSlot)
+        TrayFoodSlot[] allSlots = FindObjectsOfType<TrayFoodSlot>();
+
+        foreach (TrayFoodSlot slot in allSlots)
+        {
+            if (slot == null) continue;
+            if (slot.IsEmpty()) continue;
+
+            // Skip slots blocked by FoodLock
+            if (IsSlotBlockedByFoodLock(slot))
+            {
+                Debug.Log($"Bỏ qua visible slot tại tray {slot.GetTray()?.name} vì đang bị FoodLock khóa");
+                continue;
+            }
+
+            Sprite sprite = slot.GetSprite();
+            if (sprite == null) continue;
+
+            FoodItemInfo info = new FoodItemInfo();
+            info.slot = slot;
+            info.spriteRenderer = null;
+            info.parent = slot.transform;
+            info.isHidden = false;
+            info.tray = slot.GetTray();
+
+            allFoodItems.Add(info);
+            allSprites.Add(sprite);
+        }
+
+        // 2. Thu thập tất cả HIDDEN items (trong PlateContainer -> PlateFood)
+        // Tìm tất cả các PlateFood trong scene
+        Transform[] allTransforms = FindObjectsOfType<Transform>(true);
+
+        foreach (Transform t in allTransforms)
+        {
+            if (t.name == "PlateFood" && t.childCount > 0)
+            {
+                // PlateFood có 1 child là SpriteRenderer (hoặc Image)
+                SpriteRenderer sr = t.GetComponentInChildren<SpriteRenderer>();
+                if (sr != null && sr.sprite != null)
+                {
+                    // Kiểm tra xem có bị FoodLock ảnh hưởng không?
+                    // Hidden items nằm trong PlateContainer, cần check Tray cha
+                    Transform current = t.parent;
+                    Transform trayTransform = null;
+                    while (current != null)
+                    {
+                        if (current.name.Contains("Tray") && current.parent != null && current.parent.name.Contains("TrayRow"))
+                        {
+                            trayTransform = current;
+                            break;
+                        }
+                        current = current.parent;
+                    }
+
+                    // Check FoodLock trên tray này
+                    bool isBlocked = false;
+                    if (trayTransform != null)
+                    {
+                        FoodLockController foodLock = trayTransform.GetComponentInChildren<FoodLockController>();
+                        if (foodLock != null && foodLock.IsLocked())
+                        {
+                            isBlocked = true;
+                            Debug.Log($"Bỏ qua hidden item tại {trayTransform.name} vì đang bị FoodLock khóa");
+                        }
+                    }
+
+                    if (!isBlocked)
+                    {
+                        FoodItemInfo info = new FoodItemInfo();
+                        info.slot = null;
+                        info.spriteRenderer = sr;
+                        info.parent = t;
+                        info.isHidden = true;
+                        info.tray = trayTransform?.GetComponent<TrayManager>();
+
+                        allFoodItems.Add(info);
+                        allSprites.Add(sr.sprite);
+                    }
+                }
+            }
+        }
+
+        // Need at least 2 items to shuffle
+        if (allFoodItems.Count < 2)
+        {
+            Debug.Log($"Không đủ items để shuffle: chỉ có {allFoodItems.Count} items");
+            return false;
+        }
+
+        // Store DragDropManager references for visible items (for animation)
+        List<DragDropManager> dragDropManagers = new List<DragDropManager>();
+        List<Vector3> originalScales = new List<Vector3>();
+
+        // Shuffle the sprites list (Fisher-Yates)
+        for (int i = 0; i < allSprites.Count; i++)
+        {
+            int randomIndex = Random.Range(i, allSprites.Count);
+            Sprite temp = allSprites[i];
+            allSprites[i] = allSprites[randomIndex];
+            allSprites[randomIndex] = temp;
+        }
+
+        // Apply shuffled sprites back to items
+        for (int i = 0; i < allFoodItems.Count; i++)
+        {
+            FoodItemInfo info = allFoodItems[i];
+            Sprite newSprite = allSprites[i];
+
+            if (info.isHidden)
+            {
+                // Hidden item: update SpriteRenderer
+                if (info.spriteRenderer != null)
+                {
+                    info.spriteRenderer.sprite = newSprite;
+                    // Nếu sprite null thì disable, enable nếu có sprite
+                    info.spriteRenderer.enabled = (newSprite != null);
+                }
+            }
+            else
+            {
+                // Visible item: update TrayFoodSlot
+                if (info.slot != null)
+                {
+                    // Get DragDropManager for animation
+                    DragDropManager dragDrop = info.slot.GetComponentInChildren<DragDropManager>();
+                    if (dragDrop != null)
+                    {
+                        dragDropManagers.Add(dragDrop);
+                        originalScales.Add(dragDrop.transform.localScale);
+                        dragDrop.transform.localScale = originalScales[originalScales.Count - 1] * 1.2f;
+                    }
+
+                    info.slot.SetSprite(newSprite);
+                }
+            }
+        }
+
+        // Check tray states after shuffle (có thể có tray hoàn thành sau khi shuffle)
+        HashSet<TrayManager> traysToCheck = new HashSet<TrayManager>();
+        foreach (FoodItemInfo info in allFoodItems)
+        {
+            if (info.tray != null)
+                traysToCheck.Add(info.tray);
+        }
+
+        foreach (TrayManager tray in traysToCheck)
+        {
+            if (tray != null)
+                tray.CheckTrayState();
+        }
+
+        // Start coroutine to restore scales after animation
+        StartCoroutine(RestoreDragDropScales(dragDropManagers, originalScales));
+
+        Debug.Log($"Shuffle completed: shuffled {allFoodItems.Count} items (visible + hidden)");
+        return true;
+    }
+
+    private System.Collections.IEnumerator RestoreDragDropScales(List<DragDropManager> dragDropManagers, List<Vector3> originalScales)
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        for (int i = 0; i < dragDropManagers.Count; i++)
+        {
+            if (dragDropManagers[i] != null)
+            {
+                dragDropManagers[i].transform.localScale = originalScales[i];
+            }
+        }
     }
 
     // ==================== BOOSTER 3: FoodPurge (TODO) ====================
@@ -370,7 +550,6 @@ public class BoosterManager : MonoBehaviour
             return;
         }
 
-        // TODO: Implement FoodPurge logic later
         Debug.Log("FoodPurge chưa được implement!");
     }
 
@@ -389,7 +568,6 @@ public class BoosterManager : MonoBehaviour
             return;
         }
 
-        // TODO: Implement FlameBooster logic later
         Debug.Log("FlameBooster chưa được implement!");
     }
 
@@ -422,7 +600,6 @@ public class BoosterManager : MonoBehaviour
         RefreshUI();
     }
 
-    // ==================== DEBUG METHODS ====================
     [ContextMenu("Reset All Boosters to 10")]
     public void ResetAllBoosters()
     {
