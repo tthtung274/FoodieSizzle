@@ -31,6 +31,9 @@ public class LevelLoader : MonoBehaviour
     [Header("FoodLock")]
     public GameObject foodLockPrefab;
 
+    [Header("HardLock")] // THÊM MỚI
+    public GameObject hardLockPrefab;
+
     private Dictionary<int, Sprite> foodMap;
     private LevelData currentLevelData;
     private bool isReloading = false;
@@ -39,6 +42,9 @@ public class LevelLoader : MonoBehaviour
 
     // Track spawned FoodLock instances: key = trayId (1-based layout position), value = GameObject
     private Dictionary<int, GameObject> activeFoodLocks = new Dictionary<int, GameObject>();
+
+    // Track spawned HardLock instances // THÊM MỚI
+    private Dictionary<int, GameObject> activeHardLocks = new Dictionary<int, GameObject>();
 
     void Awake()
     {
@@ -159,16 +165,9 @@ public class LevelLoader : MonoBehaviour
     }
 
     // ---------------------------------------------------------------
-    // OBSTACLE SETUP
+    // OBSTACLE SETUP (CẬP NHẬT THÊM HARD LOCK)
     // ---------------------------------------------------------------
 
-    /// <summary>
-    /// "layout": 2 means the 2nd position when reading the layout array
-    /// left-to-right, top-to-bottom (1-indexed).
-    /// Row 0: positions 1,2,3  →  row[0][0]=1, row[0][1]=2, row[0][2]=3
-    /// Row 1: positions 4,5,6  →  etc.
-    /// So position 2 = row 0, column 1 → the tray Transform at trayRows[0].GetChild(1).
-    /// </summary>
     void SetupObstacles(LevelData data)
     {
         // Clear previous FoodLock instances
@@ -176,60 +175,91 @@ public class LevelLoader : MonoBehaviour
             if (go != null) Destroy(go);
         activeFoodLocks.Clear();
 
+        // Clear previous HardLock instances // THÊM MỚI
+        foreach (var go in activeHardLocks.Values)
+            if (go != null) Destroy(go);
+        activeHardLocks.Clear();
+
         if (data.obstacle == null || data.obstacle.Count == 0) return;
+
+        foreach (ObstacleData obs in data.obstacle)
+        {
+            if (obs.type == "FoodLock")
+            {
+                SetupFoodLock(obs, data);
+            }
+            else if (obs.type == "HardLock") // THÊM MỚI
+            {
+                SetupHardLock(obs, data);
+            }
+        }
+    }
+
+    void SetupFoodLock(ObstacleData obs, LevelData data)
+    {
         if (foodLockPrefab == null)
         {
             Debug.LogWarning("FoodLock Prefab chưa được gán vào LevelLoader!");
             return;
         }
 
-        foreach (ObstacleData obs in data.obstacle)
+        Transform trayTransform = GetTrayTransformByLayoutPosition(obs.layout, data);
+        if (trayTransform == null)
         {
-            if (obs.type != "FoodLock") continue;
-
-            // Convert 1-based layout position to (row, col)
-            Transform trayTransform = GetTrayTransformByLayoutPosition(obs.layout, data);
-            if (trayTransform == null)
-            {
-                Debug.LogWarning($"Không tìm thấy tray tại layout position {obs.layout}");
-                continue;
-            }
-
-            // Spawn FoodLock prefab as child of the tray
-            GameObject lockGO = Instantiate(foodLockPrefab, trayTransform);
-            lockGO.name = "FoodLock";
-            lockGO.SetActive(true);
-
-            // Set the FoodLock image to match FoodLockImg (same sprite as food id)
-            Sprite foodSprite = null;
-            if (!string.IsNullOrEmpty(obs.FoodLockImg) &&
-                int.TryParse(obs.FoodLockImg, out int foodId) &&
-                foodMap.ContainsKey(foodId))
-            {
-                foodSprite = foodMap[foodId];
-                SpriteRenderer sr = lockGO.GetComponentInChildren<SpriteRenderer>();
-                if (sr != null)
-                {
-                    sr.sprite = foodSprite;
-                    sr.enabled = true;
-                }
-            }
-
-            // Register with FoodLockController if present
-            FoodLockController controller = lockGO.GetComponent<FoodLockController>();
-            if (controller != null)
-                controller.Init(obs.FoodLockImg, foodSprite);
-
-            // Store using layout position as key so TrayManager can find it
-            activeFoodLocks[obs.layout] = lockGO;
-            Debug.Log($"FoodLock spawned at layout position {obs.layout}, img={obs.FoodLockImg}");
+            Debug.LogWarning($"Không tìm thấy tray tại layout position {obs.layout}");
+            return;
         }
+
+        GameObject lockGO = Instantiate(foodLockPrefab, trayTransform);
+        lockGO.name = "FoodLock";
+        lockGO.SetActive(true);
+
+        Sprite foodSprite = null;
+        if (!string.IsNullOrEmpty(obs.FoodLockImg) &&
+            int.TryParse(obs.FoodLockImg, out int foodId) &&
+            foodMap.ContainsKey(foodId))
+        {
+            foodSprite = foodMap[foodId];
+            SpriteRenderer sr = lockGO.GetComponentInChildren<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = foodSprite;
+                sr.enabled = true;
+            }
+        }
+
+        FoodLockController controller = lockGO.GetComponent<FoodLockController>();
+        if (controller != null)
+            controller.Init(obs.FoodLockImg, foodSprite);
+
+        activeFoodLocks[obs.layout] = lockGO;
+        Debug.Log($"FoodLock spawned at layout position {obs.layout}, img={obs.FoodLockImg}");
     }
 
-    /// <summary>
-    /// Converts a 1-based flat layout position to the corresponding tray Transform.
-    /// Position 1 = trayRows[0].GetChild(0), position 2 = trayRows[0].GetChild(1), etc.
-    /// </summary>
+    // THÊM MỚI: Setup Hard Lock
+    void SetupHardLock(ObstacleData obs, LevelData data)
+    {
+        if (hardLockPrefab == null)
+        {
+            Debug.LogWarning("HardLock Prefab chưa được gán vào LevelLoader!");
+            return;
+        }
+
+        Transform trayTransform = GetTrayTransformByLayoutPosition(obs.layout, data);
+        if (trayTransform == null)
+        {
+            Debug.LogWarning($"Không tìm thấy tray tại layout position {obs.layout} cho HardLock");
+            return;
+        }
+
+        GameObject hardLockGO = Instantiate(hardLockPrefab, trayTransform);
+        hardLockGO.name = "HardLock";
+        hardLockGO.SetActive(true);
+
+        activeHardLocks[obs.layout] = hardLockGO;
+        Debug.Log($"HardLock spawned at layout position {obs.layout}");
+    }
+
     Transform GetTrayTransformByLayoutPosition(int layoutPosition, LevelData data)
     {
         int counter = 0;
@@ -251,7 +281,6 @@ public class LevelLoader : MonoBehaviour
 
     // ---------------------------------------------------------------
     // PUBLIC: Called by TrayManager when 3 matching foods are eaten
-    // foodTypeId is the string ID (e.g. "6")
     // ---------------------------------------------------------------
     public void OnFoodEaten(string foodTypeId)
     {
@@ -270,8 +299,18 @@ public class LevelLoader : MonoBehaviour
         }
     }
 
+    // THÊM MỚI: Public method để mở HardLock từ bên ngoài
+    public void UnlockHardLock(int layoutPosition)
+    {
+        if (activeHardLocks.TryGetValue(layoutPosition, out GameObject hardLockGO) && hardLockGO != null)
+        {
+            hardLockGO.SetActive(false);
+            Debug.Log($"HardLock tại layout {layoutPosition} đã được mở khóa!");
+        }
+    }
+
     // ---------------------------------------------------------------
-    // Existing helpers (unchanged)
+    // Existing helpers
     // ---------------------------------------------------------------
 
     TrayData GetTrayData(TrayCollection trays, int key)

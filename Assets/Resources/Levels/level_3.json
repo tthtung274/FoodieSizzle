@@ -11,6 +11,10 @@
       "type": "FoodLock",
       "layout": 4,
       "FoodLockImg": "19"
+    },
+    {
+      "type": "HardLock",
+      "layout": 11
     }
   ],
   "foodTypes": ["13", "14", "15", "16", "17", "18", "19"],

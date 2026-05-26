@@ -503,6 +503,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7912768890015558236}
     m_Modifications:
+    - target: {fileID: 4031286792055809664, guid: 0fffefbfc0a37a549b6cc56798cc4136, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6275810814008285839, guid: 0fffefbfc0a37a549b6cc56798cc4136, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.16
+      objectReference: {fileID: 0}
     - target: {fileID: 7892600411856680964, guid: 0fffefbfc0a37a549b6cc56798cc4136, type: 3}
       propertyPath: m_Name
       value: HardLock

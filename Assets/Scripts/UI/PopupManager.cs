@@ -6,6 +6,7 @@ public class PopupManager : MonoBehaviour
     public GameObject popupSetting;
     public GameObject popupProfile;
     public GameObject popupPause;
+    public GameObject unlockPopupPanel;
 
     [Header("References")]
     public LevelLoader levelLoader;
@@ -114,5 +115,20 @@ public class PopupManager : MonoBehaviour
         }
 
         Debug.Log("=== REPLAY COMPLETE ===");
+    }
+
+    public void ClosePopupUnlock()
+    {
+        Debug.Log("CLICK CLOSE");
+
+        if (unlockPopupPanel != null)
+        {
+            Debug.Log("Popup unlock found: " + unlockPopupPanel.name);
+            unlockPopupPanel.SetActive(false);
+        }
+        else
+        {
+            Debug.LogError("popupUnlock is NULL");
+        }
     }
 }

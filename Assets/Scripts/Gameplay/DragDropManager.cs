@@ -27,12 +27,15 @@ public class DragDropManager : MonoBehaviour
     private Vector3 originalScale;
 
     [Header("Popup Panel")]
-    public string popupPanelName = "PausePopup"; // Tên của Panel
+    public string popupPanelName = "PausePopup";
     private GameObject popupPanel;
     public BoxCollider2D targetCollider;
 
-    // THÊM: Static variable để theo dõi item đang được chọn
+    // Static variable để theo dõi item đang được chọn
     private static DragDropManager currentSelectedItem;
+
+    // Sorting order khi đang kéo
+    private const int DRAGGING_SORTING_ORDER = 1000;
 
     private void Awake()
     {
@@ -46,23 +49,19 @@ public class DragDropManager : MonoBehaviour
 
         originalScale = transform.localScale;
 
-        // Tìm UI Panel trong Canvas
         FindPopupPanel();
     }
 
     private void FindPopupPanel()
     {
-        // Tìm Canvas trước
         Canvas canvas = FindObjectOfType<Canvas>();
 
         if (canvas != null)
         {
-            // Tìm Panel theo tên trong Canvas
             popupPanel = canvas.transform.Find(popupPanelName)?.gameObject;
 
             if (popupPanel == null)
             {
-                // Nếu không tìm thấy ở root, tìm deep trong Canvas
                 Transform[] allTransforms = canvas.GetComponentsInChildren<Transform>(true);
                 foreach (Transform t in allTransforms)
                 {
@@ -77,7 +76,6 @@ public class DragDropManager : MonoBehaviour
 
         if (popupPanel == null)
         {
-            // Thử tìm toàn bộ scene
             popupPanel = GameObject.Find(popupPanelName);
         }
 
@@ -93,13 +91,11 @@ public class DragDropManager : MonoBehaviour
 
     private void Update()
     {
-        // Nếu chưa có popupPanel thì thử tìm lại
         if (popupPanel == null && !string.IsNullOrEmpty(popupPanelName))
         {
             FindPopupPanel();
         }
 
-        // Xử lý popup: nếu panel active thì tắt collider
         if (popupPanel != null && targetCollider != null)
         {
             targetCollider.enabled = !popupPanel.activeSelf;
@@ -135,9 +131,10 @@ public class DragDropManager : MonoBehaviour
 
         transform.localScale = originalScale * selectedScale;
 
+        // Khi bắt đầu click (chưa kéo) - vẫn giữ sorting order 1000
         if (spriteRenderer != null)
         {
-            spriteRenderer.sortingOrder = 15;
+            spriteRenderer.sortingOrder = DRAGGING_SORTING_ORDER;
         }
 
         currentSelectedItem = this;
@@ -162,6 +159,12 @@ public class DragDropManager : MonoBehaviour
         {
             Vector3 mouseWorld = GetMouseWorldPosition();
             transform.position = mouseWorld + offset;
+
+            // Đảm bảo sorting order là 1000 trong suốt quá trình kéo
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.sortingOrder = DRAGGING_SORTING_ORDER;
+            }
         }
     }
 
@@ -187,14 +190,16 @@ public class DragDropManager : MonoBehaviour
         }
         else if (isClick)
         {
-            // Click ngắn - giữ nguyên scale to
-            // transform.localScale = originalScale * selectedScale; // Giữ nguyên
+            // Click ngắn - giữ nguyên scale to và sorting order 1000
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.sortingOrder = DRAGGING_SORTING_ORDER;
+            }
         }
 
         ResetDragState();
     }
 
-    // Các method khác giữ nguyên: FindNearestValidSlot, MoveToTarget, ReturnBack, ResetSortingOrder, ResetScale, ResetDragState, GetMouseWorldPosition
     private TrayFoodSlot FindNearestValidSlot()
     {
         TrayFoodSlot[] allSlots = FindObjectsOfType<TrayFoodSlot>();
@@ -283,7 +288,6 @@ public class DragDropManager : MonoBehaviour
 
     public void ResetToOriginalPosition()
     {
-        // Reset về vị trí ban đầu
         if (currentSlot != null)
         {
             startPosition = currentSlot.transform.position;
@@ -295,7 +299,6 @@ public class DragDropManager : MonoBehaviour
         ResetDragState();
     }
 
-    // THÊM: Phương thức để reset selection (bỏ chọn)
     private void ResetSelection()
     {
         ResetScale();
@@ -306,7 +309,6 @@ public class DragDropManager : MonoBehaviour
         }
     }
 
-    // THÊM: Xử lý khi object bị hủy
     private void OnDestroy()
     {
         if (currentSelectedItem == this)
@@ -322,6 +324,7 @@ public class DragDropManager : MonoBehaviour
         Collider2D[] hits = Physics2D.OverlapPointAll(mousePos);
 
         bool clickedFoodLock = false;
+        bool clickedHardLock = false;
         bool clickedThisItem = false;
 
         foreach (Collider2D hit in hits)
@@ -334,6 +337,11 @@ public class DragDropManager : MonoBehaviour
                 clickedFoodLock = true;
             }
 
+            if (hit.gameObject.layer == LayerMask.NameToLayer("HardLock"))
+            {
+                clickedHardLock = true;
+            }
+
             if (hit.transform == transform ||
                 hit.transform.IsChildOf(transform))
             {
@@ -341,6 +349,6 @@ public class DragDropManager : MonoBehaviour
             }
         }
 
-        return clickedFoodLock && clickedThisItem;
+        return (clickedFoodLock || clickedHardLock) && clickedThisItem;
     }
 }
